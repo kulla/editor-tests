@@ -3,15 +3,19 @@ import * as R from 'ramda'
 import { stringify } from '../utils'
 
 export function InvestigateInputEvent() {
-  const [eventState, setEventState] = useState<InputEvent | null>(null)
+  const [eventState, setEventState] = useState<Event | null>(null)
   const preText = stringify(R.pick(['data', 'insertType'], eventState))
 
   return (
     <>
       <ContentEditableDiv
-        onInput={(e) => {
-          console.log(e)
-          setEventState(e.nativeEvent as InputEvent)
+        onInput={(event) => {
+          console.log('== The react event ==')
+          console.log(event.nativeEvent)
+          console.log('== The native Event ==')
+          console.log(event.nativeEvent)
+
+          setEventState(event.nativeEvent)
         }}
       ></ContentEditableDiv>
       <pre>lastInputEvent: {preText}</pre>

@@ -1,18 +1,12 @@
 import { useState, ComponentProps } from "react";
+import { stringify } from "../utils";
 
 export function InvestigateInputEvent() {
   const [eventState, setEventState] = useState<InputEvent | null>(null);
-  const preText =
-    eventState !== null
-      ? JSON.stringify(
-          {
-            data: eventState.data,
-            inputType: eventState.inputType,
-          },
-          null,
-          2
-        )
-      : "null";
+  const preText = stringify({
+    data: eventState?.data,
+    inputType: eventState?.inputType,
+  });
 
   return (
     <>

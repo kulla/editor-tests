@@ -3,8 +3,8 @@ import * as R from 'ramda'
 import { stringify } from '../utils'
 
 export function InvestigateInputEvent() {
-  const [eventState, setEventState] = useState<Event | null>(null)
-  const preText = stringify(R.pick(['data', 'insertType'], eventState))
+  const [eventState, setEventState] = useState<Event | {}>({})
+  const preText = stringify(R.pick(['data', 'inputType'], eventState))
 
   return (
     <>

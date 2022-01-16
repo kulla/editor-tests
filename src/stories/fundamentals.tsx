@@ -13,7 +13,7 @@ export function InvestigateInputEvent() {
       <ContentEditableDiv
         onInput={(event) => {
           console.log('== The react event ==')
-          console.log(event.nativeEvent)
+          console.log(event)
           console.log('== The native Event ==')
           console.log(event.nativeEvent)
 

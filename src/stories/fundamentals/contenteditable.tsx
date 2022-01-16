@@ -16,18 +16,18 @@ export function InvestigateInputEvent() {
 
   return (
     <>
-      <BasicContentEditableDiv
+      <ContentEditableDiv
         onInput={(e) => {
           console.log(e);
           setEventState(e.nativeEvent as InputEvent);
         }}
-      ></BasicContentEditableDiv>
+      ></ContentEditableDiv>
       <pre>lastInputEvent: {preText}</pre>
     </>
   );
 }
 
-export function BasicContentEditableDiv(
+export function ContentEditableDiv(
   props: {
     children?: string;
   } & ComponentProps<"div">

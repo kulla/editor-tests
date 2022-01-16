@@ -1,6 +1,6 @@
-import { InvestigateInputEvent, ContentEditableDiv } from './contenteditable'
+import { InvestigateInputEvent, ContentEditableDiv } from './fundamentals'
 
-<Meta title="Fundamentals/Contenteditable" />
+<Meta title="Fundamentals" />
 
 # contenteditable
 
@@ -10,14 +10,14 @@ By adding `contenteditable` to an HTML element it can be made editable:
 
 <ContentEditableDiv>I am an editable div</ContentEditableDiv>
 
-# onInput
+## onInput
 
 Whenever there is a change on a `contenteditable` element an `InputEvent` is
 fired. You can listen on them via `onInput`:
 
 <InvestigateInputEvent />
 
-## Important properties of `InputEvent`
+### Important properties of `InputEvent`
 
 - `ìnsertType`: type of change / reason for change (like `insertText` or
   `deleteContentBackward`)
@@ -28,7 +28,7 @@ fired. You can listen on them via `onInput`:
   [input method](https://developer.mozilla.org/en-US/docs/Glossary/Input_method_editor)
   a new character shall be included (see also `composed`)
 
-## Values for `insertType`:
+### Values for `insertType`:
 
 - `insertText`: input of a new character
 - `deleteContentBackward`: deletion with `DEL`

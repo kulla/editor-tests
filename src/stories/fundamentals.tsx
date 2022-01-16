@@ -1,6 +1,6 @@
 import { useState, ComponentProps } from 'react'
 import * as R from 'ramda'
-import { stringify } from '../utils'
+import { stringify } from './utils'
 
 export function InvestigateInputEvent() {
   const [eventState, setEventState] = useState<Event | {}>({})

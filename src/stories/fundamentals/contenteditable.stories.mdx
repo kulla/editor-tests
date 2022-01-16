@@ -24,12 +24,13 @@ fired. You can listen on them via `onInput`:
 - `data`: contains new characters when `inputType === "insertText"`
 - `dataTransfer`: contains data from clipboard when
   `inputType === "insertFromPaste"`
+- `isComposing`: `true` iff with a special
+  [input method](https://developer.mozilla.org/en-US/docs/Glossary/Input_method_editor)
+  a new character shall be included (see also `composed`)
 
 ## Values for `insertType`:
 
 - `insertText`: input of a new character
-  - `inputEvent.composed === true` iff character is a composed utf8 character
-    (like `"é" === "´"+ "e"`)
 - `deleteContentBackward`: deletion with `DEL`
 - `deletedContentForward`: deletion with `ENTF`
 - `insertFromPaste`: Pasting text with `Strg + V`

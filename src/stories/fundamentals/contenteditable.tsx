@@ -4,7 +4,9 @@ import { stringify } from '../utils'
 
 export function InvestigateInputEvent() {
   const [eventState, setEventState] = useState<Event | {}>({})
-  const preText = stringify(R.pick(['data', 'inputType'], eventState))
+  const preText = stringify(
+    R.pick(['data', 'inputType', 'composed', 'isComposing'], eventState)
+  )
 
   return (
     <>

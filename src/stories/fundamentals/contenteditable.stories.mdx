@@ -17,6 +17,20 @@ fired. You can listen on them via `onInput`:
 
 <InvestigateInputEvent />
 
-- When an character is inserted:
-  - `data` is the inserted character
-  - `insertType == "t"`
+## Important properties of `InputEvent`
+
+- `ìnsertType`: type of change / reason for change (like `insertText` or
+  `deleteContentBackward`)
+- `data`: contains new characters when `inputType === "insertText"`
+- `dataTransfer`: contains data from clipboard when
+  `inputType === "insertFromPaste"`
+
+## Values for `insertType`:
+
+- `insertText`: input of a new character
+  - `inputEvent.composed === true` iff character is a composed utf8 character
+    (like `"é" === "´"+ "e"`)
+- `deleteContentBackward`: deletion with `DEL`
+- `deletedContentForward`: deletion with `ENTF`
+- `insertFromPaste`: Pasting text with `Strg + V`
+- `deleteByCut`: Cutting with `Strg + X`

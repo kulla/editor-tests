@@ -1,12 +1,10 @@
 import { useState, ComponentProps } from 'react'
+import * as R from 'ramda'
 import { stringify } from '../utils'
 
 export function InvestigateInputEvent() {
   const [eventState, setEventState] = useState<InputEvent | null>(null)
-  const preText = stringify({
-    data: eventState?.data,
-    inputType: eventState?.inputType,
-  })
+  const preText = stringify(R.pick(['data', 'insertType'], eventState))
 
   return (
     <>

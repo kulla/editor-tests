@@ -34,7 +34,7 @@ export function ContentEditableDiv(
     <div
       contentEditable
       suppressContentEditableWarning
-      style={{ border: '1px solid black', padding: '1em' }}
+      style={{ border: '1px solid black', padding: '1em', marginBottom: '1em' }}
       {...props}
     >
       {props.children ?? 'I am an editable div'}

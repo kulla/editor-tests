@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import * as R from 'ramda'
 
-import { stringify } from './utils'
+import { stringify, isReactEvent } from './utils'
 
 export function ContentEditableDivOnBeforeInput({
   onBeforeInput: eventHandler,
@@ -109,8 +109,4 @@ function ComponentHeader({ children }: { children: string }) {
       <strong>{children}</strong>
     </p>
   )
-}
-
-function isReactEvent(e: object): e is React.SyntheticEvent {
-  return R.has('_reactName', e)
 }

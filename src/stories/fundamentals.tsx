@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import * as R from 'ramda'
 
-import { stringify, isReactEvent } from './utils'
+import { stringify, isSynteticEvent } from './utils'
 
 export function ContentEditableDivOnBeforeInput({
   onBeforeInput: eventHandler,
@@ -61,12 +61,12 @@ export function InvestigateEvent({
   return (
     <>
       {children((event) => {
-        if (isReactEvent(event)) {
+        if (isSynteticEvent(event)) {
           console.log('== The react event ==')
           console.log(event)
         }
 
-        const nativeEvent = isReactEvent(event) ? event.nativeEvent : event
+        const nativeEvent = isSynteticEvent(event) ? event.nativeEvent : event
 
         console.log('== The native Event ==')
         console.log(nativeEvent)

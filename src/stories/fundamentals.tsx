@@ -1,5 +1,7 @@
 import { useState, ComponentProps } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import * as R from 'ramda'
+
 import { stringify } from './utils'
 
 export function ContentEditableDiv(
@@ -40,6 +42,21 @@ export function InvestigateEvent<E extends React.SyntheticEvent>({
         setEventState(event.nativeEvent)
       })}
       <pre>lastEvent: {preText}</pre>
+    </>
+  )
+}
+
+export function ShowHTML({ children }: { children: React.ReactElement }) {
+  return (
+    <>
+      <p>
+        <b>Source code:</b>
+      </p>
+      <pre>{ReactDOMServer.renderToStaticMarkup(children)}</pre>
+      <p>
+        <b>Output:</b>
+      </p>
+      {children}
     </>
   )
 }

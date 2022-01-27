@@ -1,4 +1,4 @@
-import { InvestigateEvent, ContentEditableDiv } from './fundamentals'
+import { InvestigateEvent, ContentEditableDiv, ShowHTML } from './fundamentals'
 
 <Meta title="Fundamentals" />
 
@@ -6,9 +6,9 @@ import { InvestigateEvent, ContentEditableDiv } from './fundamentals'
 
 By adding `contenteditable` to an HTML element it can be made editable:
 
-<!-- TODO: Add HTML source code next to element -->
-
-<ContentEditableDiv>I am an editable div</ContentEditableDiv>
+<ShowHTML>
+  <ContentEditableDiv>I am an editable div</ContentEditableDiv>
+</ShowHTML>
 
 ## onInput
 

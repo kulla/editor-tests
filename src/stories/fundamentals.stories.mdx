@@ -1,4 +1,9 @@
-import { InvestigateEvent, ContentEditableDiv, ShowHTML } from './fundamentals'
+import {
+  InvestigateEvent,
+  ContentEditableDiv,
+  ShowHTML,
+  ContentEditableDivOnBeforeInput,
+} from './fundamentals'
 
 <Meta title="Fundamentals" />
 
@@ -48,6 +53,14 @@ was altered):
 
 Also `onBeforeInput` can be used to listen on `onInput` elements. Instead of
 `onInput` those Events are fired before the DOM was changed.
+
+<InvestigateEvent
+  investigatedProperties={['type', 'key', 'charCode', 'shiftKey']}
+>
+  {(eventHandler) => (
+    <ContentEditableDivOnBeforeInput onBeforeInput={eventHandler} />
+  )}
+</InvestigateEvent>
 
 In React there is [a bug](https://github.com/facebook/react/issues/11211) that
 the InputEvent is not propagated:

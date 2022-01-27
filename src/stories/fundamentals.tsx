@@ -1,45 +1,77 @@
-import { useState, ComponentProps } from 'react'
+import React from 'react'
 import ReactDOMServer from 'react-dom/server'
 import * as R from 'ramda'
 
 import { stringify } from './utils'
 
-export function ContentEditableDiv(
-  props: {
-    children?: string
-  } & ComponentProps<'div'>
-) {
-  return (
-    <div
-      contentEditable
-      suppressContentEditableWarning
-      style={{ border: '1px solid black', padding: '1em', marginBottom: '1em' }}
-      {...props}
-    >
-      {props.children ?? 'I am an editable div'}
-    </div>
-  )
+export function ContentEditableDivOnBeforeInput({
+  onBeforeInput: eventHandler,
+}: {
+  onBeforeInput: (event: InputEvent) => void
+}) {
+  const element = React.useRef<HTMLDivElement>(null)
+  React.useEffect(() => {
+    console.log(element)
+    if (element.current != null) {
+      console.log('hello')
+      element.current.addEventListener('beforeinput', eventHandler)
+    }
+  }, [element])
+
+  return <ContentEditableDiv ref={element} />
 }
 
-export function InvestigateEvent<E extends React.SyntheticEvent>({
+export const ContentEditableDiv = React.forwardRef(
+  (
+    props: {
+      children?: string
+    } & React.ComponentProps<'div'>,
+    ref?: React.LegacyRef<HTMLDivElement>
+  ) => {
+    return (
+      <div
+        contentEditable
+        suppressContentEditableWarning
+        style={{
+          border: '1px solid black',
+          padding: '1em',
+          marginBottom: '1em',
+        }}
+        ref={ref}
+        {...props}
+      >
+        {props.children ?? 'I am an editable div'}
+      </div>
+    )
+  }
+)
+
+export function InvestigateEvent({
   investigatedProperties: properties,
   children,
 }: {
   investigatedProperties: string[]
-  children: (eventHandler: React.EventHandler<E>) => React.ReactNode
+  children: (
+    eventHandler: (event: React.SyntheticEvent | Event) => void
+  ) => React.ReactNode
 }) {
-  const [eventState, setEventState] = useState<Event | {}>({})
+  const [eventState, setEventState] = React.useState({})
   const preText = stringify(R.pick(properties, eventState))
 
   return (
     <>
-      {children((event: E) => {
-        console.log('== The react event ==')
-        console.log(event)
-        console.log('== The native Event ==')
-        console.log(event.nativeEvent)
+      {children((event) => {
+        if (isReactEvent(event)) {
+          console.log('== The react event ==')
+          console.log(event)
+        }
 
-        setEventState(event.nativeEvent)
+        const nativeEvent = isReactEvent(event) ? event.nativeEvent : event
+
+        console.log('== The native Event ==')
+        console.log(nativeEvent)
+
+        setEventState(nativeEvent)
       })}
       <pre>lastEvent: {preText}</pre>
     </>
@@ -77,4 +109,8 @@ function ComponentHeader({ children }: { children: string }) {
       <strong>{children}</strong>
     </p>
   )
+}
+
+function isReactEvent(e: object): e is React.SyntheticEvent {
+  return R.has('_reactName', e)
 }

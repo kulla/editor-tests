@@ -3,25 +3,14 @@ import * as R from 'ramda'
 import { stringify } from './utils'
 
 export function InvestigateInputEvent() {
-  const [eventState, setEventState] = useState<Event | {}>({})
-  const preText = stringify(
-    R.pick(['data', 'inputType', 'composed', 'isComposing'], eventState)
-  )
-
   return (
-    <>
-      <ContentEditableDiv
-        onInput={(event) => {
-          console.log('== The react event ==')
-          console.log(event)
-          console.log('== The native Event ==')
-          console.log(event.nativeEvent)
-
-          setEventState(event.nativeEvent)
-        }}
-      ></ContentEditableDiv>
-      <pre>lastInputEvent: {preText}</pre>
-    </>
+    <InvestigateEvent
+      investigatedProperties={['data', 'inputType', 'composed', 'isComposing']}
+    >
+      {(eventHandler) => (
+        <ContentEditableDiv onInput={eventHandler}></ContentEditableDiv>
+      )}
+    </InvestigateEvent>
   )
 }
 
@@ -39,5 +28,30 @@ export function ContentEditableDiv(
     >
       {props.children ?? 'I am an editable div'}
     </div>
+  )
+}
+
+export function InvestigateEvent<E extends React.SyntheticEvent>({
+  investigatedProperties: properties,
+  children,
+}: {
+  investigatedProperties: string[]
+  children: (eventHandler: React.EventHandler<E>) => React.ReactNode
+}) {
+  const [eventState, setEventState] = useState<Event | {}>({})
+  const preText = stringify(R.pick(properties, eventState))
+
+  return (
+    <>
+      {children((event: E) => {
+        console.log('== The react event ==')
+        console.log(event)
+        console.log('== The native Event ==')
+        console.log(event.nativeEvent)
+
+        setEventState(event.nativeEvent)
+      })}
+      <pre>lastEvent: {preText}</pre>
+    </>
   )
 }

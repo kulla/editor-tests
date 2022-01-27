@@ -13,7 +13,8 @@ By adding `contenteditable` to an HTML element it can be made editable:
 ## onInput
 
 Whenever there is a change on a `contenteditable` element an `InputEvent` is
-fired. You can listen on them via `onInput`:
+fired. You can listen on them via `onInput` (the event is fired after the DOM
+was altered):
 
 <InvestigateEvent
   investigatedProperties={['data', 'inputType', 'composed', 'isComposing']}
@@ -42,3 +43,19 @@ fired. You can listen on them via `onInput`:
 - `insertParagraph`: add new paragraph with `ENTER`
 - `insertFromPaste`: Pasting text with `Strg + V`
 - `deleteByCut`: Cutting with `Strg + X`
+
+## onBeforeInput
+
+Also `onBeforeInput` can be used to listen on `onInput` elements. Instead of
+`onInput` those Events are fired before the DOM was changed.
+
+In React there is [a bug](https://github.com/facebook/react/issues/11211) that
+the InputEvent is not propagated:
+
+<InvestigateEvent
+  investigatedProperties={['type', 'key', 'charCode', 'shiftKey']}
+>
+  {(eventHandler) => (
+    <ContentEditableDiv onBeforeInput={eventHandler}></ContentEditableDiv>
+  )}
+</InvestigateEvent>

@@ -1,4 +1,4 @@
-import { InvestigateInputEvent, ContentEditableDiv } from './fundamentals'
+import { InvestigateEvent, ContentEditableDiv } from './fundamentals'
 
 <Meta title="Fundamentals" />
 
@@ -15,7 +15,13 @@ By adding `contenteditable` to an HTML element it can be made editable:
 Whenever there is a change on a `contenteditable` element an `InputEvent` is
 fired. You can listen on them via `onInput`:
 
-<InvestigateInputEvent />
+<InvestigateEvent
+  investigatedProperties={['data', 'inputType', 'composed', 'isComposing']}
+>
+  {(eventHandler) => (
+    <ContentEditableDiv onInput={eventHandler}></ContentEditableDiv>
+  )}
+</InvestigateEvent>
 
 ### Important properties of `InputEvent`
 

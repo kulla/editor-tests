@@ -2,18 +2,6 @@ import { useState, ComponentProps } from 'react'
 import * as R from 'ramda'
 import { stringify } from './utils'
 
-export function InvestigateInputEvent() {
-  return (
-    <InvestigateEvent
-      investigatedProperties={['data', 'inputType', 'composed', 'isComposing']}
-    >
-      {(eventHandler) => (
-        <ContentEditableDiv onInput={eventHandler}></ContentEditableDiv>
-      )}
-    </InvestigateEvent>
-  )
-}
-
 export function ContentEditableDiv(
   props: {
     children?: string

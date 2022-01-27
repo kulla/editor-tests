@@ -49,14 +49,32 @@ export function InvestigateEvent<E extends React.SyntheticEvent>({
 export function ShowHTML({ children }: { children: React.ReactElement }) {
   return (
     <>
-      <p>
-        <b>Source code:</b>
-      </p>
-      <pre>{ReactDOMServer.renderToStaticMarkup(children)}</pre>
-      <p>
-        <b>Output:</b>
-      </p>
+      <ComponentHeader>Source code:</ComponentHeader>
+      <SourceCode>{ReactDOMServer.renderToStaticMarkup(children)}</SourceCode>
+      <ComponentHeader>Output:</ComponentHeader>
       {children}
     </>
+  )
+}
+
+function SourceCode({ children }: { children: React.ReactNode }) {
+  return (
+    <pre
+      style={{
+        backgroundColor: '#f4f4f4',
+        borderLeft: '6px solid #005282',
+        padding: '1em',
+      }}
+    >
+      {children}
+    </pre>
+  )
+}
+
+function ComponentHeader({ children }: { children: string }) {
+  return (
+    <p className="sbdocs sbdocs-p">
+      <strong>{children}</strong>
+    </p>
   )
 }

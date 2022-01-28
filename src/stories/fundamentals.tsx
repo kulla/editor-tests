@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function ContentEditableDivOnBeforeInput({
+export function ContentEditableDivFixed({
   onBeforeInput: eventHandler,
 }: {
   onBeforeInput: (event: InputEvent) => void

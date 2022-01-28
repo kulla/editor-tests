@@ -1,7 +1,4 @@
-import {
-  ContentEditableDiv,
-  ContentEditableDivOnBeforeInput,
-} from './fundamentals'
+import { ContentEditableDiv, ContentEditableDivFixed } from './fundamentals'
 import { InvestigateEvent, ShowHTML } from './utils'
 
 <Meta title="Fundamentals" />
@@ -56,9 +53,7 @@ Also `onBeforeInput` can be used to listen on `onInput` elements. Instead of
 <InvestigateEvent
   investigatedProperties={['type', 'key', 'charCode', 'shiftKey']}
 >
-  {(eventHandler) => (
-    <ContentEditableDivOnBeforeInput onBeforeInput={eventHandler} />
-  )}
+  {(eventHandler) => <ContentEditableDivFixed onBeforeInput={eventHandler} />}
 </InvestigateEvent>
 
 In React there is [a bug](https://github.com/facebook/react/issues/11211) that

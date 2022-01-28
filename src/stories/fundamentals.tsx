@@ -9,7 +9,18 @@ export function ContentEditableDivFixed({
   React.useEffect(() => {
     console.log(element)
     if (element.current != null) {
-      element.current.addEventListener('beforeinput', eventHandler)
+      element.current.addEventListener('beforeinput', (event) => {
+        // TODO: Better implementation
+        // @ts-ignore
+        event['targetRanges'] = event.getTargetRanges().map((range) => {
+          return {
+            collaped: range.collapsed,
+            endOffset: range.endOffset,
+            startOffset: range.startOffset,
+          }
+        })
+        eventHandler(event)
+      })
     }
   }, [element])
 

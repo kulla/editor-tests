@@ -51,7 +51,7 @@ Also `onBeforeInput` can be used to listen on `onInput` elements. Instead of
 `onInput` those Events are fired before the DOM was changed.
 
 <InvestigateEvent
-  investigatedProperties={['type', 'key', 'charCode', 'shiftKey']}
+  investigatedProperties={['inputType', 'data', 'targetRanges', 'composed']}
 >
   {(eventHandler) => <ContentEditableDivFixed onBeforeInput={eventHandler} />}
 </InvestigateEvent>

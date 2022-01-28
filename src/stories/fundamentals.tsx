@@ -9,7 +9,6 @@ export function ContentEditableDivFixed({
   React.useEffect(() => {
     console.log(element)
     if (element.current != null) {
-      console.log('hello')
       element.current.addEventListener('beforeinput', eventHandler)
     }
   }, [element])

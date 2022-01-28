@@ -19,9 +19,7 @@ export function ContentEditableDivOnBeforeInput({
 
 export const ContentEditableDiv = React.forwardRef(
   (
-    props: {
-      children?: string
-    } & React.ComponentProps<'div'>,
+    props: React.ComponentProps<'div'>,
     ref?: React.LegacyRef<HTMLDivElement>
   ) => {
     return (
@@ -36,7 +34,7 @@ export const ContentEditableDiv = React.forwardRef(
         ref={ref}
         {...props}
       >
-        {props.children ?? 'I am an editable div'}
+        I am an editable div
       </div>
     )
   }

@@ -22,13 +22,8 @@ class EditableTextElement extends React.Component<
       const ranges = event.getTargetRanges()
 
       if (event.inputType === 'insertText') {
-        this.setState(
-          ({ text }) => {
-            return {
-              text: insertAt(ranges[0].startOffset, event.data ?? '', text),
-            }
-          },
-          () => this.reportState(this.state)
+        this.changeText((text) =>
+          insertAt(ranges[0].startOffset, event.data ?? '', text)
         )
       } else {
         event.preventDefault()
@@ -59,6 +54,17 @@ class EditableTextElement extends React.Component<
     if (this.divRef.current == null) return true
 
     return false
+  }
+
+  changeText(func: (text: string) => string) {
+    this.setState(
+      ({ text }) => {
+        return {
+          text: func(text),
+        }
+      },
+      () => this.reportState(this.state)
+    )
   }
 }
 

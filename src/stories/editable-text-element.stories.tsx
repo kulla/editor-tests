@@ -1,5 +1,5 @@
 import { ComponentMeta } from '@storybook/react'
-import { ComponentHeader, stringify } from './utils'
+import { ReportComponentState } from './utils'
 import React from 'react'
 
 interface EditableTextElementProps {
@@ -83,23 +83,6 @@ class EditableTextElement extends React.Component<
       () => this.reportState(this.state)
     )
   }
-}
-
-function ReportComponentState({
-  children,
-}: {
-  children: (setState: React.Dispatch<unknown>) => JSX.Element
-}) {
-  const [state, setState] = React.useState<unknown>()
-
-  return (
-    <>
-      <ComponentHeader>Element:</ComponentHeader>
-      {children(setState)}
-      <ComponentHeader>State:</ComponentHeader>
-      <pre>{stringify(state)}</pre>
-    </>
-  )
 }
 
 export default {

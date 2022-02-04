@@ -34,6 +34,23 @@ export function InvestigateEvent({
   )
 }
 
+export function ReportComponentState({
+  children,
+}: {
+  children: (setState: React.Dispatch<unknown>) => JSX.Element
+}) {
+  const [state, setState] = React.useState<unknown>()
+
+  return (
+    <>
+      <ComponentHeader>Element:</ComponentHeader>
+      {children(setState)}
+      <ComponentHeader>State:</ComponentHeader>
+      <pre>{stringify(state)}</pre>
+    </>
+  )
+}
+
 export function ShowHTML({ children }: { children: React.ReactElement }) {
   return (
     <>
@@ -45,7 +62,7 @@ export function ShowHTML({ children }: { children: React.ReactElement }) {
   )
 }
 
-function SourceCode({ children }: { children: React.ReactNode }) {
+export function SourceCode({ children }: { children: React.ReactNode }) {
   return (
     <pre
       style={{

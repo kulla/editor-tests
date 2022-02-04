@@ -2,14 +2,18 @@ import { ComponentMeta } from '@storybook/react'
 import { ComponentHeader, stringify } from './utils'
 import React from 'react'
 
+interface EditableTextElementProps {
+  reportState: React.Dispatch<{ text: string }>
+}
+
 class EditableTextElement extends React.Component<
-  { reportState: React.Dispatch<{ text: string }> },
+  EditableTextElementProps,
   { text: string }
 > {
   private divRef
   private reportState
 
-  constructor(props: { reportState: React.Dispatch<{ text: string }> }) {
+  constructor(props: EditableTextElementProps) {
     super(props)
 
     this.state = { text: 'Hello World' }

@@ -59,7 +59,7 @@ function SourceCode({ children }: { children: React.ReactNode }) {
   )
 }
 
-function ComponentHeader({ children }: { children: string }) {
+export function ComponentHeader({ children }: { children: string }) {
   return (
     <p className="sbdocs sbdocs-p">
       <strong>{children}</strong>
@@ -67,7 +67,7 @@ function ComponentHeader({ children }: { children: string }) {
   )
 }
 
-function stringify(value: unknown): string {
+export function stringify(value: unknown): string {
   return JSON.stringify(value, null, 2)
 }
 

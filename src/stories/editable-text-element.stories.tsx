@@ -22,8 +22,10 @@ class EditableTextElement extends React.Component<
       const ranges = event.getTargetRanges()
 
       if (event.inputType === 'insertText') {
-        this.changeText((text) =>
-          insertAt(ranges[0].startOffset, event.data ?? '', text)
+        const pos = ranges[0].startOffset
+
+        this.changeText(
+          (text) => text.slice(0, pos) + event.data + text.slice(pos)
         )
       } else {
         event.preventDefault()
@@ -95,7 +97,3 @@ export const Basic = () => (
     {(reportState) => <EditableTextElement reportState={reportState} />}
   </ReportComponentState>
 )
-
-function insertAt(pos: number, data: string, text: string) {
-  return text.slice(0, pos) + data + text.slice(pos)
-}

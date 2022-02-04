@@ -1,12 +1,10 @@
-import { ComponentMeta } from '@storybook/react'
-import { ReportComponentState } from './utils'
 import React from 'react'
 
 interface EditableTextElementProps {
   reportState: React.Dispatch<{ text: string }>
 }
 
-class EditableTextElement extends React.Component<
+export class EditableTextElement extends React.Component<
   EditableTextElementProps,
   { text: string }
 > {
@@ -84,14 +82,3 @@ class EditableTextElement extends React.Component<
     )
   }
 }
-
-export default {
-  title: 'Editable text element',
-  component: EditableTextElement,
-} as ComponentMeta<typeof EditableTextElement>
-
-export const Basic = () => (
-  <ReportComponentState>
-    {(reportState) => <EditableTextElement reportState={reportState} />}
-  </ReportComponentState>
-)

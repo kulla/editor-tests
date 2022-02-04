@@ -63,6 +63,9 @@ class EditableTextElement extends React.Component<
   shouldComponentUpdate(): boolean {
     if (this.divRef.current == null) return true
 
+    // By rerendering the element the carret is put at the beginning of the
+    // element which makes editing weird
+    // Taken from https://github.com/lovasoa/react-contenteditable/blob/ea00220ae595d1176e7cf3616e10f23faf327558/src/react-contenteditable.tsx#L58
     return false
   }
 

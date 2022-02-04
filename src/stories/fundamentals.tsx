@@ -7,7 +7,6 @@ export function ContentEditableDivFixed({
 }) {
   const element = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => {
-    console.log(element)
     if (element.current != null) {
       element.current.addEventListener('beforeinput', (event) => {
         // TODO: Better implementation
@@ -22,7 +21,7 @@ export function ContentEditableDivFixed({
         eventHandler(event)
       })
     }
-  }, [element])
+  }, [element, eventHandler])
 
   return <ContentEditableDiv ref={element} />
 }

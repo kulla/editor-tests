@@ -27,6 +27,14 @@ class EditableTextElement extends React.Component<
         this.changeText(
           (text) => text.slice(0, pos) + event.data + text.slice(pos)
         )
+      } else if (
+        event.inputType === 'deleteContentBackward' ||
+        event.inputType === 'deleteContentForward'
+      ) {
+        const from = ranges[0].startOffset
+        const to = ranges[0].endOffset
+
+        this.changeText((text) => text.slice(0, from) + text.slice(to))
       } else {
         event.preventDefault()
       }

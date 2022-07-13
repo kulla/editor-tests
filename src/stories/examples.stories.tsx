@@ -2,6 +2,7 @@ import React from 'react'
 import { ComponentMeta } from '@storybook/react'
 import { ReportComponentState } from './utils'
 import { EditableTextElement } from './editable-text-element'
+import { Rendering } from './rendering'
 
 export default {
   title: 'Tests',
@@ -17,6 +18,8 @@ export const EditableTextElement_ = () => (
     </ReportComponentState>
   </Example>
 )
+
+export const Rendering_ = () => <Rendering />
 
 function Example({
   title,

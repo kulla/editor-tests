@@ -23,7 +23,12 @@ export class EditableTextElement extends React.Component<
     this.divRef.current?.addEventListener('beforeinput', (event) => {
       const ranges = event.getTargetRanges()
 
-      if (event.inputType === 'insertText') {
+      if (ranges.length > 1) {
+        // TODO: Implement changes when there are more than one range
+        // You can create more ranges by holding `Strg` (in Firefox)
+        // Let's just ignore this case
+        event.preventDefault()
+      } else if (event.inputType === 'insertText') {
         const pos = ranges[0].startOffset
 
         this.changeText(

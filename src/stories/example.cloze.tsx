@@ -1,3 +1,5 @@
+import { render } from "@testing-library/react"
+
 export type DragNDrop = {
   type: 'drag-n-drop'
   exercise: Paragraph[]
@@ -59,18 +61,72 @@ function editParagraph(paragraph: Paragraph) {
     <>
       {paragraph.content.map((block) => {
         if (block.type === 'text') return editText(block)
-        if (block.type === 'italic') {
-          return <i>{block.content.map(editText)}</i>
-        }
-        if (block.type === 'solution') {
-          // don't know how to highlight <span>
-          return <b>{block.content.map(editText)}</b>
-        }
+        if (block.type === 'italic') return renderItalic(block)
+        if (block.type === 'solution') return editSolution(block)
       })}
     </>
   )
 }
 
+
 function editText(text: Text) {
-  return <>{text}</>
+  return text.text
+}
+
+function editSolution(block: Solution) {
+    // don't know how to highlight <span>
+    return <b>{block.content.map(editText)}</b>
+}
+
+function renderCloze(jsonExample: DragNDrop) {
+    // TODO: Solutions and answers cannot be concatenated to be shuffled
+    const solutions = jsonExample.exercise.map(renderAnswers)[0]
+    const answers = solutions.concat(jsonExample.wrongAnswers)
+
+    return (
+        <div>
+          {jsonExample.exercise.map(renderParagraph)}
+          <br></br>
+          {answers.map(answer => {
+            if (answer.type === "solution") return renderSolution(answer)
+            if (answer.type === "wrong-answer") return renderWrongAnswer(answer)
+          })}
+        </div>
+      )
+}
+
+function renderAnswers(paragraph: Paragraph) {
+    return paragraph.content.map(para => 
+        {if (para.type === "solution")
+        {
+            return paragraph
+        }}
+        )
+}
+
+function renderParagraph(paragraph: Paragraph) {
+    return (
+        <>
+          {paragraph.content.map((block) => {
+            if (block.type === 'text') return editText(block)
+            if (block.type === 'italic') return renderItalic(block)
+            if (block.type === 'solution') return renderSolution(block)
+          })}
+        </>
+      )
+} 
+
+function renderItalic(block: Italic) {
+    return <i>{block.content.map(editText)}</i>
+}
+
+function renderSolution(block: Solution) {
+    // don't know how to highlight <span>
+    return <b>{block.content.map(item => editText(item).replaceAll("", "_")
+              )}   
+            </b>
+}
+
+function renderWrongAnswer(block: WrongAnswer) {
+    return <b>{block.content.map(editText)} </b>
 }

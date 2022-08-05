@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react"
+import { render } from '@testing-library/react'
 
 export type DragNDrop = {
   type: 'drag-n-drop'
@@ -31,102 +31,104 @@ export type WrongAnswer = {
   content: Text[]
 }
 
-export function editCloze(jsonExample: DragNDrop) {
-  let title = jsonExample.type
+type Content = Text | Italic | Solution | WrongAnswer | Paragraph | DragNDrop
 
-  // What if wrong answers empty?
-
-  return (
-    <div>
-      <h1>{title}</h1>
-      {jsonExample.exercise.map(editParagraph)}
-      <br></br>
-      <b>Falsche Lösungen, die zusätzlich angezeigt werden sollen</b>
-      <br></br>
-      <ul>
-        {jsonExample.wrongAnswers.map((wrongAnswer) =>
-          editWrongAnswer(wrongAnswer)
-        )}
-      </ul>
-    </div>
-  )
+interface PluginDefinition {
+  render(
+    content: Content,
+    renderChildren: (content: Content) => JSX.Element
+  ): JSX.Element
+  renderEditMode?(
+    content: Content,
+    renderChildren: (content: Content) => JSX.Element
+  ): JSX.Element
 }
 
-function editWrongAnswer(wrongAnswer: WrongAnswer) {
-  return <li>{wrongAnswer.content.map(editText)}</li>
-}
+const Registry: Record<Content['type'], PluginDefinition> = {
+  'drag-n-drop': {
+    render: (dragNDrop: DragNDrop, renderChildren) => {
+      // gather correct and wrong answers in one array
+      const wrongAnswers = dragNDrop.wrongAnswers.map(renderChildren)
 
-function editParagraph(paragraph: Paragraph) {
-  return (
-    <>
-      {paragraph.content.map((block) => {
-        if (block.type === 'text') return editText(block)
-        if (block.type === 'italic') return renderItalic(block)
-        if (block.type === 'solution') return editSolution(block)
-      })}
-    </>
-  )
-}
-
-
-function editText(text: Text) {
-  return text.text
-}
-
-function editSolution(block: Solution) {
-    // don't know how to highlight <span>
-    return <b>{block.content.map(editText)}</b>
-}
-
-function renderCloze(jsonExample: DragNDrop) {
-    // TODO: Solutions and answers cannot be concatenated to be shuffled
-    const solutions = jsonExample.exercise.map(renderAnswers)[0]
-    const answers = solutions.concat(jsonExample.wrongAnswers)
-
-    return (
+      // TODO: render correct and wrong answers
+      return <div>{dragNDrop.exercise.map(renderChildren)}</div>
+    },
+    renderEditMode: (dragNDrop: DragNDrop, renderChildren) => {
+      return (
         <div>
-          {jsonExample.exercise.map(renderParagraph)}
+          <h1>Drag &amp; Drop Aufgabe:</h1>
+          {dragNDrop.exercise.map(renderChildren)}
           <br></br>
-          {answers.map(answer => {
-            if (answer.type === "solution") return renderSolution(answer)
-            if (answer.type === "wrong-answer") return renderWrongAnswer(answer)
-          })}
+          <b>Falsche Lösungen, die zusätzlich angezeigt werden sollen</b>
+          <br></br>
+          <ul>{dragNDrop.wrongAnswers.map(renderChildren)}</ul>
         </div>
       )
-}
-
-function renderAnswers(paragraph: Paragraph) {
-    return paragraph.content.map(para => 
-        {if (para.type === "solution")
-        {
-            return paragraph
-        }}
-        )
-}
-
-function renderParagraph(paragraph: Paragraph) {
-    return (
-        <>
-          {paragraph.content.map((block) => {
-            if (block.type === 'text') return editText(block)
-            if (block.type === 'italic') return renderItalic(block)
-            if (block.type === 'solution') return renderSolution(block)
-          })}
-        </>
+    },
+  },
+  'paragraph': {
+    render: (paragraph: Paragraph, renderChildren) => {
+      return <>{paragraph.content.map(renderChildren)}</>
+    },
+  },
+  'wrong-answer': {
+    render: (wrongAnswer: WrongAnswer, renderChildren) => {
+      return (
+        <span style={{ background: '#f44336' }}>
+          {wrongAnswer.content.map(renderChildren)}{' '}
+        </span>
       )
-} 
-
-function renderItalic(block: Italic) {
-    return <i>{block.content.map(editText)}</i>
+    },
+    renderEditMode: (wrongAnswer: WrongAnswer, renderChildren) => {
+      return (
+        <li>
+          <span style={{ background: '#f44336' }}>
+            {wrongAnswer.content.map(renderChildren)}
+          </span>
+        </li>
+      )
+    },
+  },
+  'solution': {
+    render: (solution: Solution, renderChildren) => {
+      // replaceAll("", "_")
+      return (
+        <span style={{ background: '#8fce00' }}>
+          {solution.content.map(renderChildren)}
+        </span>
+      )
+    },
+    renderEditMode: (solution: Solution, renderChildren) => {
+      return (
+        <span style={{ background: '#8fce00' }}>
+          {solution.content.map(renderChildren)}
+        </span>
+      )
+    },
+  },
+  'italic': {
+    render: (italic: Italic, renderChildren) => {
+      return <i>{italic.content.map(renderChildren)}</i>
+    },
+  },
+  'text': {
+    render: (text: Text) => {
+      return <>{text.text}</>
+    },
+  },
 }
 
-function renderSolution(block: Solution) {
-    // don't know how to highlight <span>
-    return <b>{block.content.map(item => editText(item).replaceAll("", "_")
-              )}   
-            </b>
-}
+export function createRenderFunction({ editMode }: { editMode: boolean }) {
+  function render(
+    content: Content,
+    options?: { replaceAll: boolean }
+  ): JSX.Element {
+    const plugin = Registry[content.type]
 
-function renderWrongAnswer(block: WrongAnswer) {
-    return <b>{block.content.map(editText)} </b>
+    return editMode && plugin.renderEditMode != null
+      ? plugin.renderEditMode(content, render)
+      : plugin.render(content, render)
+  }
+
+  return render
 }

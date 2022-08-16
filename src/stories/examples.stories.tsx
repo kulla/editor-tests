@@ -3,6 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 import { ReportComponentState } from './utils'
 import { EditableTextElement } from './editable-text-element'
 import { Rendering } from './rendering'
+import { createRenderFunction } from './example.cloze'
 
 export default {
   title: 'Tests',

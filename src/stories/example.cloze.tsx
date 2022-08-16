@@ -1,5 +1,3 @@
-import { render } from '@testing-library/react'
-
 export type DragNDrop = {
   type: 'drag-n-drop'
   exercise: Paragraph[]
@@ -47,11 +45,23 @@ interface PluginDefinition {
 const Registry: Record<Content['type'], PluginDefinition> = {
   'drag-n-drop': {
     render: (dragNDrop: DragNDrop, renderChildren) => {
-      // gather correct and wrong answers in one array
-      const wrongAnswers = dragNDrop.wrongAnswers.map(renderChildren)
+      const wrongAnswers = dragNDrop.wrongAnswers
 
-      // TODO: render correct and wrong answers
-      return <div>{dragNDrop.exercise.map(renderChildren)}</div>
+      const paragraphValues = dragNDrop.exercise
+        .map((paragraph) => {
+          return paragraph.content
+        })
+        .flat()
+      const correctAnswers = paragraphValues
+        .map((value) => {
+          if (value.type == 'solution') return value
+          else return []
+        })
+        .flat()
+
+      const allAnswers = [...wrongAnswers, ...correctAnswers]
+
+      return <div>{allAnswers.map(renderChildren)}</div>
     },
     renderEditMode: (dragNDrop: DragNDrop, renderChildren) => {
       return (
@@ -66,7 +76,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
       )
     },
   },
-  'paragraph': {
+  paragraph: {
     render: (paragraph: Paragraph, renderChildren) => {
       return <>{paragraph.content.map(renderChildren)}</>
     },
@@ -89,14 +99,13 @@ const Registry: Record<Content['type'], PluginDefinition> = {
       )
     },
   },
-  'solution': {
+  solution: {
     render: (solution: Solution, renderChildren) => {
-      // replaceAll("", "_")
-      return (
-        <span style={{ background: '#8fce00' }}>
-          {solution.content.map(renderChildren)}
-        </span>
-      )
+      const underscoredSolutions = solution.content.map((text) => {
+        return { type: text.type, text: text.text.replaceAll('', '_') }
+      })
+
+      return <>{underscoredSolutions.map(renderChildren)}</>
     },
     renderEditMode: (solution: Solution, renderChildren) => {
       return (
@@ -106,12 +115,12 @@ const Registry: Record<Content['type'], PluginDefinition> = {
       )
     },
   },
-  'italic': {
+  italic: {
     render: (italic: Italic, renderChildren) => {
       return <i>{italic.content.map(renderChildren)}</i>
     },
   },
-  'text': {
+  text: {
     render: (text: Text) => {
       return <>{text.text}</>
     },

@@ -61,12 +61,19 @@ const Registry: Record<Content['type'], PluginDefinition> = {
 
       const allAnswers = [...wrongAnswers, ...correctAnswers]
 
-      return <div>{allAnswers.map(renderChildren)}</div>
+      return (
+        <div>
+          {dragNDrop.exercise.map(renderChildren)}
+          <br />
+          <br />
+          {allAnswers.map(renderChildren)}
+        </div>
+      )
     },
     renderEditMode: (dragNDrop: DragNDrop, renderChildren) => {
       return (
         <div>
-          <h1>Drag &amp; Drop Aufgabe:</h1>
+          <h2>Drag &amp; Drop Aufgabe:</h2>
           {dragNDrop.exercise.map(renderChildren)}
           <br></br>
           <b>Falsche Lösungen, die zusätzlich angezeigt werden sollen</b>
@@ -102,7 +109,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
   solution: {
     render: (solution: Solution, renderChildren) => {
       const underscoredSolutions = solution.content.map((text) => {
-        return { type: text.type, text: text.text.replaceAll('', '_') }
+        return { type: text.type, text: text.text.replaceAll(/\w/g, '_') }
       })
 
       return <>{underscoredSolutions.map(renderChildren)}</>
@@ -128,10 +135,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
 }
 
 export function createRenderFunction({ editMode }: { editMode: boolean }) {
-  function render(
-    content: Content,
-    options?: { replaceAll: boolean }
-  ): JSX.Element {
+  function render(content: Content): JSX.Element {
     const plugin = Registry[content.type]
 
     return editMode && plugin.renderEditMode != null

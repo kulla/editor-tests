@@ -1,72 +1,24 @@
-export type DragNDrop = {
-  type: 'drag-n-drop'
-  exercise: Paragraph[]
-  wrongAnswers: WrongAnswer[]
-}
+export function createRenderFunction({ editMode }: { editMode: boolean }) {
+  function render(content: Content): JSX.Element {
+    const plugin = Registry[content.type]
 
-export type Paragraph = {
-  type: 'paragraph'
-  content: (Italic | Solution | Text)[]
-}
+    return editMode && plugin.renderEditMode != null
+      ? plugin.renderEditMode(content, render)
+      : plugin.render(content, render)
+  }
 
-export type Italic = {
-  type: 'italic'
-  content: Text[]
-}
-
-export type Text = {
-  type: 'text'
-  text: string
-}
-
-export type Solution = {
-  type: 'solution'
-  content: Text[]
-}
-
-export type WrongAnswer = {
-  type: 'wrong-answer'
-  content: Text[]
-}
-
-type Content = Text | Italic | Solution | WrongAnswer | Paragraph | DragNDrop
-
-interface PluginDefinition {
-  render(
-    content: Content,
-    renderChildren: (content: Content) => JSX.Element
-  ): JSX.Element
-  renderEditMode?(
-    content: Content,
-    renderChildren: (content: Content) => JSX.Element
-  ): JSX.Element
+  return render
 }
 
 const Registry: Record<Content['type'], PluginDefinition> = {
   'drag-n-drop': {
     render: (dragNDrop: DragNDrop, renderChildren) => {
-      const wrongAnswers = dragNDrop.wrongAnswers
-
-      const paragraphValues = dragNDrop.exercise
-        .map((paragraph) => {
-          return paragraph.content
-        })
-        .flat()
-      const correctAnswers = paragraphValues
-        .map((value) => {
-          if (value.type == 'solution') return value
-          else return []
-        })
-        .flat()
-
-      const allAnswers = [...wrongAnswers, ...correctAnswers]
-
       return (
         <div>
           {dragNDrop.exercise.map(renderChildren)}
           <br />
           <br />
-          {allAnswers.map(renderChildren)}
+          {shuffle(getSolutions(dragNDrop)).map(renderChildren)}
         </div>
       )
     },
@@ -78,31 +30,22 @@ const Registry: Record<Content['type'], PluginDefinition> = {
           <br></br>
           <b>Falsche Lösungen, die zusätzlich angezeigt werden sollen</b>
           <br></br>
-          <ul>{dragNDrop.wrongAnswers.map(renderChildren)}</ul>
+          <ul>{dragNDrop.wrongAnswers.map(w => <li>{renderChildren(w)}</li>)}</ul>
         </div>
       )
     },
   },
   paragraph: {
     render: (paragraph: Paragraph, renderChildren) => {
-      return <>{paragraph.content.map(renderChildren)}</>
+      return <p>{paragraph.content.map(renderChildren)}</p>
     },
   },
   'wrong-answer': {
     render: (wrongAnswer: WrongAnswer, renderChildren) => {
       return (
         <span style={{ background: '#f44336' }}>
-          {wrongAnswer.content.map(renderChildren)}{' '}
+          {wrongAnswer.content.map(renderChildren)}
         </span>
-      )
-    },
-    renderEditMode: (wrongAnswer: WrongAnswer, renderChildren) => {
-      return (
-        <li>
-          <span style={{ background: '#f44336' }}>
-            {wrongAnswer.content.map(renderChildren)}
-          </span>
-        </li>
       )
     },
   },
@@ -114,6 +57,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
 
       return <>{underscoredSolutions.map(renderChildren)}</>
     },
+    // TODO: Kontextabhängigkeit -> brauchen bessere Lösung
     renderEditMode: (solution: Solution, renderChildren) => {
       return (
         <span style={{ background: '#8fce00' }}>
@@ -134,14 +78,66 @@ const Registry: Record<Content['type'], PluginDefinition> = {
   },
 }
 
-export function createRenderFunction({ editMode }: { editMode: boolean }) {
-  function render(content: Content): JSX.Element {
-    const plugin = Registry[content.type]
+function getSolutions(dragNDrop: DragNDrop): Answer[] {
+  const solutions: Answer[] = dragNDrop.exercise.flatMap(x => x.content).filter(isSolution)
 
-    return editMode && plugin.renderEditMode != null
-      ? plugin.renderEditMode(content, render)
-      : plugin.render(content, render)
+  return solutions.concat(dragNDrop.wrongAnswers)
+}
+
+function isSolution(content: Content): content is Solution {
+  return content.type === "solution"
+}
+
+function shuffle(answers: Answer[]): Answer[] {
+  for (let i = answers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [answers[i], answers[j]] = [answers[j], answers[i]]
   }
+  return answers
+}
 
-  return render
+
+interface PluginDefinition {
+  render(
+    content: Content,
+    renderChildren: (content: Content) => JSX.Element
+  ): JSX.Element
+  renderEditMode?(
+    content: Content,
+    renderChildren: (content: Content) => JSX.Element
+  ): JSX.Element
+}
+
+type Content = Text | Italic | Solution | WrongAnswer | Paragraph | DragNDrop
+type Answer = WrongAnswer | Solution
+
+export type DragNDrop = {
+  type: 'drag-n-drop'
+  exercise: Paragraph[]
+  wrongAnswers: WrongAnswer[]
+}
+
+type Paragraph = {
+  type: 'paragraph'
+  content: (Italic | Solution | Text)[]
+}
+
+type Solution = {
+  type: 'solution'
+  content: Text[]
+}
+
+type WrongAnswer = {
+  type: 'wrong-answer'
+  content: Text[]
+}
+
+type Italic = {
+  type: 'italic'
+  content: Text[]
+}
+
+type Text = {
+  type: 'text'
+  text: string
 }

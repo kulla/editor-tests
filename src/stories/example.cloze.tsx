@@ -17,8 +17,9 @@ const Registry: Record<Content['type'], PluginDefinition> = {
         <div>
           {dragNDrop.exercise.map(renderChildren)}
           <br />
-          <br />
-          {shuffle(getSolutions(dragNDrop)).map(renderChildren)}
+          {shuffle(getSolutions(dragNDrop)).map((a) => (
+            <>{renderChildren(a)}&nbsp;</>
+          ))}
         </div>
       )
     },
@@ -30,7 +31,11 @@ const Registry: Record<Content['type'], PluginDefinition> = {
           <br></br>
           <b>Falsche Lösungen, die zusätzlich angezeigt werden sollen</b>
           <br></br>
-          <ul>{dragNDrop.wrongAnswers.map(w => <li>{renderChildren(w)}</li>)}</ul>
+          <ul>
+            {dragNDrop.wrongAnswers.map((w) => (
+              <li>{renderChildren(w)}</li>
+            ))}
+          </ul>
         </div>
       )
     },
@@ -43,7 +48,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
   'wrong-answer': {
     render: (wrongAnswer: WrongAnswer, renderChildren) => {
       return (
-        <span style={{ background: '#f44336' }}>
+        <span style={{ background: '#f4cccc' }}>
           {wrongAnswer.content.map(renderChildren)}
         </span>
       )
@@ -60,7 +65,7 @@ const Registry: Record<Content['type'], PluginDefinition> = {
     // TODO: Kontextabhängigkeit -> brauchen bessere Lösung
     renderEditMode: (solution: Solution, renderChildren) => {
       return (
-        <span style={{ background: '#8fce00' }}>
+        <span style={{ background: '#d9e9d5' }}>
           {solution.content.map(renderChildren)}
         </span>
       )
@@ -79,23 +84,24 @@ const Registry: Record<Content['type'], PluginDefinition> = {
 }
 
 function getSolutions(dragNDrop: DragNDrop): Answer[] {
-  const solutions: Answer[] = dragNDrop.exercise.flatMap(x => x.content).filter(isSolution)
+  const solutions: Answer[] = dragNDrop.exercise
+    .flatMap((x) => x.content)
+    .filter(isSolution)
 
   return solutions.concat(dragNDrop.wrongAnswers)
 }
 
 function isSolution(content: Content): content is Solution {
-  return content.type === "solution"
+  return content.type === 'solution'
 }
 
 function shuffle(answers: Answer[]): Answer[] {
   for (let i = answers.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [answers[i], answers[j]] = [answers[j], answers[i]]
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[answers[i], answers[j]] = [answers[j], answers[i]]
   }
   return answers
 }
-
 
 interface PluginDefinition {
   render(
@@ -108,7 +114,14 @@ interface PluginDefinition {
   ): JSX.Element
 }
 
-type Content = Text | Italic | Solution | WrongAnswer | Paragraph | DragNDrop
+type Content =
+  | Text
+  | Italic
+  | Solution
+  | WrongAnswer
+  | Paragraph
+  | DragNDrop
+  | Answer
 type Answer = WrongAnswer | Solution
 
 export type DragNDrop = {

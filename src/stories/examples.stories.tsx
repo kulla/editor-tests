@@ -3,6 +3,7 @@ import { ComponentMeta } from '@storybook/react'
 import { ReportComponentState } from './utils'
 import { EditableTextElement } from './editable-text-element'
 import { Rendering } from './rendering'
+import { EditorWithCursor } from './cursor'
 
 export default {
   title: 'Tests',
@@ -20,6 +21,32 @@ export const EditableTextElement_ = () => (
 )
 
 export const Rendering_ = () => <Rendering />
+export const EditorWithCursor_ = () => (
+  <EditorWithCursor
+    content={{
+      type: 'dragNDrop',
+      exercise: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'italic', content: { type: 'text', content: 'Berlin' } },
+            { type: 'text', content: ' is the capitol of ' },
+            { type: 'solution', content: { type: 'text', content: 'Germany' } },
+            { type: 'text', content: '. The capitol of ' },
+            { type: 'italic', content: { type: 'text', content: 'France' } },
+            { type: 'text', content: ' is ' },
+            { type: 'solution', content: { type: 'text', content: 'Paris' } },
+            { type: 'text', content: '.' },
+          ],
+        },
+      ],
+      wrongAnswers: [
+        { type: 'wrongAnswer', content: { type: 'text', content: 'Poland' } },
+        { type: 'wrongAnswer', content: { type: 'text', content: 'Krakow' } },
+      ],
+    }}
+  />
+)
 
 function Example({
   title,

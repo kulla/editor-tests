@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 interface EditorWithCursorProps {
   content: Content
   startCursor?: Cursor
@@ -131,7 +133,20 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
     return plugin.render(content, cursor, renderChildren)
   }
 
-  return renderChildren(props.content, [])
+  const divRef = React.createRef<HTMLDivElement>()
+
+  React.useEffect(() => {
+    divRef.current?.addEventListener('beforeinput', (event) =>
+      event.preventDefault()
+    )
+  }, [divRef])
+
+  return (
+    // TODO: Remove border
+    <div contentEditable suppressContentEditableWarning ref={divRef}>
+      {renderChildren(props.content, [])}
+    </div>
+  )
 }
 
 function BorderedSpan({

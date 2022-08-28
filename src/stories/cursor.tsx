@@ -64,7 +64,9 @@ const registry: PluginRegistry = {
           </p>
           <ul>
             {wrongAnswers.map((wrongAnswer) => (
-              <li>{renderChildren(wrongAnswer)}</li>
+              <li style={{ marginBottom: '0.3em' }}>
+                {renderChildren(wrongAnswer)}
+              </li>
             ))}
           </ul>
         </>
@@ -73,20 +75,40 @@ const registry: PluginRegistry = {
   },
   paragraph: {
     render({ content }, renderChildren) {
-      return <p>{content.map(renderChildren)}</p>
+      return <p className="sbdocs sbdocs-p">{content.map(renderChildren)}</p>
     },
   },
   wrongAnswer: {
     render({ content }, renderChildren) {
       return (
-        <span style={{ background: 'red' }}>{renderChildren(content)}</span>
+        <span
+          style={{
+            display: 'inline-block',
+            padding: '3px',
+            borderRadius: '5px',
+            border: '1px solid grey',
+            background: '#EA7F99',
+          }}
+        >
+          {renderChildren(content)}
+        </span>
       )
     },
   },
   solution: {
     render({ content }, renderChildren) {
       return (
-        <span style={{ background: 'green' }}>{renderChildren(content)}</span>
+        <span
+          style={{
+            display: 'inline-block',
+            padding: '3px',
+            borderRadius: '5px',
+            border: '1px solid grey',
+            background: '#488F65',
+          }}
+        >
+          {renderChildren(content)}
+        </span>
       )
     },
   },

@@ -43,7 +43,8 @@ interface Text {
 interface PluginDefinition<S extends Content> {
   render(
     content: S,
-    renderChildren: (child: Content) => JSX.Element
+    cursor: Cursor,
+    renderChildren: (child: Content, cursor: Cursor) => JSX.Element
   ): JSX.Element
 }
 type PluginRegistry = {
@@ -52,20 +53,25 @@ type PluginRegistry = {
 
 const registry: PluginRegistry = {
   dragNDrop: {
-    render({ exercise, wrongAnswers }, renderChildren) {
+    render({ exercise, wrongAnswers }, cursor, renderChildren) {
       return (
-        <div style={{ fontFamily: 'Nunito Sans' }}>
+        <div
+          style={{ fontFamily: 'Nunito Sans' }}
+          data-path={JSON.stringify(cursor)}
+        >
           <p>
             <b>Drag & Drop Exercise:</b>
           </p>
-          {exercise.map(renderChildren)}
+          {exercise.map((child, i) =>
+            renderChildren(child, [...cursor, 'exercise', i])
+          )}
           <p>
             <b>Wrong solutions which also shall be shown:</b>
           </p>
           <ul>
-            {wrongAnswers.map((wrongAnswer) => (
+            {wrongAnswers.map((wrongAnswer, i) => (
               <li style={{ marginBottom: '0.3em' }}>
-                {renderChildren(wrongAnswer)}
+                {renderChildren(wrongAnswer, [...cursor, 'wrongAnswer', i])}
               </li>
             ))}
           </ul>
@@ -74,56 +80,68 @@ const registry: PluginRegistry = {
     },
   },
   paragraph: {
-    render({ content }, renderChildren) {
-      return <p>{content.map(renderChildren)}</p>
+    render({ content }, cursor, renderChildren) {
+      return (
+        <p data-path={JSON.stringify(cursor)}>
+          {content.map((child, i) =>
+            renderChildren(child, [...cursor, 'content', i])
+          )}
+        </p>
+      )
     },
   },
   wrongAnswer: {
-    render({ content }, renderChildren) {
+    render({ content }, cursor, renderChildren) {
       return (
-        <BorderedSpan background="#EA7F99">
-          {renderChildren(content)}
+        <BorderedSpan background="#EA7F99" data-path={JSON.stringify(cursor)}>
+          {renderChildren(content, [...cursor, 'content'])}
         </BorderedSpan>
       )
     },
   },
   solution: {
-    render({ content }, renderChildren) {
+    render({ content }, cursor, renderChildren) {
       return (
-        <BorderedSpan background="#488F65">
-          {renderChildren(content)}
+        <BorderedSpan background="#488F65" data-path={JSON.stringify(cursor)}>
+          {renderChildren(content, [...cursor, 'content'])}
         </BorderedSpan>
       )
     },
   },
   italic: {
-    render({ content }, renderChildren) {
-      return <i>{renderChildren(content)}</i>
+    render({ content }, cursor, renderChildren) {
+      return (
+        <i data-path={JSON.stringify(cursor)}>
+          {renderChildren(content, [...cursor, 'content'])}
+        </i>
+      )
     },
   },
   text: {
-    render({ content }) {
-      return <>{content}</>
+    render({ content }, cursor) {
+      return <span data-path={JSON.stringify(cursor)}>{content}</span>
     },
   },
 }
 
 export function EditorWithCursor(props: EditorWithCursorProps) {
-  function renderChildren(content: Content): JSX.Element {
+  function renderChildren(content: Content, cursor: Cursor): JSX.Element {
     const plugin = registry[content.type] as PluginDefinition<Content>
 
-    return plugin.render(content, renderChildren)
+    return plugin.render(content, cursor, renderChildren)
   }
 
-  return renderChildren(props.content)
+  return renderChildren(props.content, [])
 }
 
 function BorderedSpan({
   background,
   children,
+  ...args
 }: {
   background: string
   children: React.ReactNode
+  'data-path': string
 }) {
   return (
     <span
@@ -134,6 +152,7 @@ function BorderedSpan({
         border: '1px solid grey',
         background,
       }}
+      {...args}
     >
       {children}
     </span>

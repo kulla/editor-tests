@@ -54,7 +54,7 @@ const registry: PluginRegistry = {
   dragNDrop: {
     render({ exercise, wrongAnswers }, renderChildren) {
       return (
-        <>
+        <div style={{ fontFamily: 'Nunito Sans' }}>
           <p>
             <b>Drag & Drop Exercise:</b>
           </p>
@@ -69,46 +69,30 @@ const registry: PluginRegistry = {
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )
     },
   },
   paragraph: {
     render({ content }, renderChildren) {
-      return <p className="sbdocs sbdocs-p">{content.map(renderChildren)}</p>
+      return <p>{content.map(renderChildren)}</p>
     },
   },
   wrongAnswer: {
     render({ content }, renderChildren) {
       return (
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '3px',
-            borderRadius: '5px',
-            border: '1px solid grey',
-            background: '#EA7F99',
-          }}
-        >
+        <BorderedSpan background="#EA7F99">
           {renderChildren(content)}
-        </span>
+        </BorderedSpan>
       )
     },
   },
   solution: {
     render({ content }, renderChildren) {
       return (
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '3px',
-            borderRadius: '5px',
-            border: '1px solid grey',
-            background: '#488F65',
-          }}
-        >
+        <BorderedSpan background="#488F65">
           {renderChildren(content)}
-        </span>
+        </BorderedSpan>
       )
     },
   },
@@ -132,4 +116,26 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
   }
 
   return renderChildren(props.content)
+}
+
+function BorderedSpan({
+  background,
+  children,
+}: {
+  background: string
+  children: React.ReactNode
+}) {
+  return (
+    <span
+      style={{
+        display: 'inline-block',
+        padding: '3px',
+        borderRadius: '5px',
+        border: '1px solid grey',
+        background,
+      }}
+    >
+      {children}
+    </span>
+  )
 }

@@ -72,7 +72,7 @@ const registry: PluginRegistry = {
           </p>
           <ul>
             {wrongAnswers.map((wrongAnswer, i) => (
-              <li style={{ marginBottom: '0.3em' }}>
+              <li style={{ marginBottom: '0.3em' }} key={i}>
                 {renderChildren(wrongAnswer, [...cursor, 'wrongAnswer', i])}
               </li>
             ))}

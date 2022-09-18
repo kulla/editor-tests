@@ -134,6 +134,8 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
   }
 
   const divRef = React.createRef<HTMLDivElement>()
+  const [startCursor, setStartCursor] = React.useState<Cursor | null>(null)
+  const [endCursor, setEndCursor] = React.useState<Cursor | null>(null)
 
   React.useEffect(() => {
     divRef.current?.addEventListener('beforeinput', (event) =>
@@ -141,11 +143,33 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
     )
   }, [divRef])
 
+  React.useEffect(() => {
+    document.addEventListener('selectionchange', () => {
+      const selection = document.getSelection()
+
+      if (selection === null || selection.anchorNode === null) {
+        setStartCursor(null)
+      } else {
+        setStartCursor(getCursor(selection.anchorNode, selection.anchorOffset))
+      }
+
+      if (selection === null || selection.focusNode === null) {
+        setEndCursor(null)
+      } else {
+        setEndCursor(getCursor(selection.focusNode, selection.focusOffset))
+      }
+    })
+  }, [])
+
   return (
-    // TODO: Remove border
-    <div contentEditable suppressContentEditableWarning ref={divRef}>
-      {renderChildren(props.content, [])}
-    </div>
+    <>
+      {/* TODO: Remove border */}
+      <div contentEditable suppressContentEditableWarning ref={divRef}>
+        {renderChildren(props.content, [])}
+      </div>
+      <pre>Start cursor: {JSON.stringify(startCursor)}</pre>
+      <pre>End cursor: {JSON.stringify(endCursor)}</pre>
+    </>
   )
 }
 
@@ -172,4 +196,30 @@ function BorderedSpan({
       {children}
     </span>
   )
+}
+
+function getCursor(node: Node, offset: number): Cursor | null {
+  if (isElement(node)) {
+    const dataPath = node.attributes.getNamedItem('data-path')?.value
+
+    if (dataPath != null) {
+      try {
+        const cursor = JSON.parse(dataPath) as Cursor
+
+        return [...cursor, offset]
+      } catch (e) {
+        // ignore
+      }
+    }
+  }
+
+  if (node.parentElement !== null) {
+    return getCursor(node.parentElement, offset)
+  }
+
+  return null
+}
+
+function isElement(node: Node): node is Element {
+  return node.nodeType === Node.ELEMENT_NODE
 }

@@ -205,12 +205,12 @@ function BorderedSpan({
 
 function getCursor(node: Node, offset: number): Cursor | null {
   const before = getPath(
-    (node) => node.previousSibling ?? node.parentElement,
+    (node) => node.nextSibling ?? node.parentElement,
     node,
     offset
   )
   const after = getPath(
-    (node) => node.nextSibling ?? node.parentElement,
+    (node) => node.previousSibling ?? node.parentElement,
     node,
     offset
   )

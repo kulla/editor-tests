@@ -1,4 +1,5 @@
 import * as React from 'react'
+import stringify from 'json-stringify-pretty-compact'
 
 interface EditorWithCursorProps {
   content: Content
@@ -171,8 +172,13 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       <div contentEditable suppressContentEditableWarning ref={divRef}>
         {renderChildren(props.content, [])}
       </div>
-      <pre>Start cursor: {JSON.stringify(startCursor)}</pre>
-      <pre>End cursor: {JSON.stringify(endCursor)}</pre>
+      <hr />
+      <h1>State</h1>
+      <h2>Start cursor</h2>
+      <pre>{stringify(startCursor)}</pre>
+      <h2>End cursor</h2>
+      <pre>{stringify(endCursor)}</pre>
+      <h2>Content</h2>
       <pre>{JSON.stringify(props.content, undefined, 2)}</pre>
     </>
   )

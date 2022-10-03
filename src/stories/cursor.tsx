@@ -126,7 +126,11 @@ const registry: PluginRegistry = {
   },
   text: {
     render({ content }, path) {
-      return <span data-path={JSON.stringify(path)}>{content}</span>
+      return (
+        <span data-path={JSON.stringify(path)} data-type="text">
+          {content}
+        </span>
+      )
     },
   },
 }
@@ -237,7 +241,9 @@ function getPath(
         // For a proof of concept it is okay to have no typechecking here
         const path = JSON.parse(dataPath) as Path
 
-        return [...path, offset]
+        return node.attributes.getNamedItem('data-type')?.value === 'text'
+          ? [...path, offset]
+          : path
       } catch (e) {
         // ignore
       }

@@ -6,7 +6,11 @@ interface EditorWithCursorProps {
   endCursor?: Cursor
 }
 
-type Cursor = Array<string | number>
+interface Cursor {
+  after: Path
+  before: Path
+}
+type Path = Array<string | number>
 type Content = DragNDrop | Paragraph | WrongAnswer | Solution | Italic | Text
 
 interface DragNDrop {
@@ -45,8 +49,8 @@ interface Text {
 interface PluginDefinition<S extends Content> {
   render(
     content: S,
-    cursor: Cursor,
-    renderChildren: (child: Content, cursor: Cursor) => JSX.Element
+    path: Path,
+    renderChildren: (child: Content, path: Path) => JSX.Element
   ): JSX.Element
 }
 type PluginRegistry = {
@@ -55,17 +59,17 @@ type PluginRegistry = {
 
 const registry: PluginRegistry = {
   dragNDrop: {
-    render({ exercise, wrongAnswers }, cursor, renderChildren) {
+    render({ exercise, wrongAnswers }, path, renderChildren) {
       return (
         <div
           style={{ fontFamily: 'Nunito Sans' }}
-          data-path={JSON.stringify(cursor)}
+          data-path={JSON.stringify(path)}
         >
           <p>
             <b>Drag & Drop Exercise:</b>
           </p>
           {exercise.map((child, i) =>
-            renderChildren(child, [...cursor, 'exercise', i])
+            renderChildren(child, [...path, 'exercise', i])
           )}
           <p>
             <b>Wrong solutions which also shall be shown:</b>
@@ -73,7 +77,7 @@ const registry: PluginRegistry = {
           <ul>
             {wrongAnswers.map((wrongAnswer, i) => (
               <li style={{ marginBottom: '0.3em' }} key={i}>
-                {renderChildren(wrongAnswer, [...cursor, 'wrongAnswer', i])}
+                {renderChildren(wrongAnswer, [...path, 'wrongAnswer', i])}
               </li>
             ))}
           </ul>
@@ -82,55 +86,55 @@ const registry: PluginRegistry = {
     },
   },
   paragraph: {
-    render({ content }, cursor, renderChildren) {
+    render({ content }, path, renderChildren) {
       return (
-        <p data-path={JSON.stringify(cursor)}>
+        <p data-path={JSON.stringify(path)}>
           {content.map((child, i) =>
-            renderChildren(child, [...cursor, 'content', i])
+            renderChildren(child, [...path, 'content', i])
           )}
         </p>
       )
     },
   },
   wrongAnswer: {
-    render({ content }, cursor, renderChildren) {
+    render({ content }, path, renderChildren) {
       return (
-        <BorderedSpan background="#EA7F99" data-path={JSON.stringify(cursor)}>
-          {renderChildren(content, [...cursor, 'content'])}
+        <BorderedSpan background="#EA7F99" data-path={JSON.stringify(path)}>
+          {renderChildren(content, [...path, 'content'])}
         </BorderedSpan>
       )
     },
   },
   solution: {
-    render({ content }, cursor, renderChildren) {
+    render({ content }, path, renderChildren) {
       return (
-        <BorderedSpan background="#488F65" data-path={JSON.stringify(cursor)}>
-          {renderChildren(content, [...cursor, 'content'])}
+        <BorderedSpan background="#488F65" data-path={JSON.stringify(path)}>
+          {renderChildren(content, [...path, 'content'])}
         </BorderedSpan>
       )
     },
   },
   italic: {
-    render({ content }, cursor, renderChildren) {
+    render({ content }, path, renderChildren) {
       return (
-        <i data-path={JSON.stringify(cursor)}>
-          {renderChildren(content, [...cursor, 'content'])}
+        <i data-path={JSON.stringify(path)}>
+          {renderChildren(content, [...path, 'content'])}
         </i>
       )
     },
   },
   text: {
-    render({ content }, cursor) {
-      return <span data-path={JSON.stringify(cursor)}>{content}</span>
+    render({ content }, path) {
+      return <span data-path={JSON.stringify(path)}>{content}</span>
     },
   },
 }
 
 export function EditorWithCursor(props: EditorWithCursorProps) {
-  function renderChildren(content: Content, cursor: Cursor): JSX.Element {
+  function renderChildren(content: Content, path: Path): JSX.Element {
     const plugin = registry[content.type] as PluginDefinition<Content>
 
-    return plugin.render(content, cursor, renderChildren)
+    return plugin.render(content, path, renderChildren)
   }
 
   const divRef = React.createRef<HTMLDivElement>()
@@ -169,6 +173,7 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       </div>
       <pre>Start cursor: {JSON.stringify(startCursor)}</pre>
       <pre>End cursor: {JSON.stringify(endCursor)}</pre>
+      <pre>{JSON.stringify(props.content, undefined, 2)}</pre>
     </>
   )
 }
@@ -199,22 +204,44 @@ function BorderedSpan({
 }
 
 function getCursor(node: Node, offset: number): Cursor | null {
+  const before = getPath(
+    (node) => node.previousSibling ?? node.parentElement,
+    node,
+    offset
+  )
+  const after = getPath(
+    (node) => node.nextSibling ?? node.parentElement,
+    node,
+    offset
+  )
+
+  return before != null && after != null ? { after, before } : null
+}
+
+function getPath(
+  getNextNode: (node: Node) => Node | null,
+  node: Node,
+  offset: number
+): Path | null {
   if (isElement(node)) {
     const dataPath = node.attributes.getNamedItem('data-path')?.value
 
     if (dataPath != null) {
       try {
-        const cursor = JSON.parse(dataPath) as Cursor
+        // For a proof of concept it is okay to have no typechecking here
+        const path = JSON.parse(dataPath) as Path
 
-        return [...cursor, offset]
+        return [...path, offset]
       } catch (e) {
         // ignore
       }
     }
   }
 
-  if (node.parentElement !== null) {
-    return getCursor(node.parentElement, offset)
+  const nextNode = getNextNode(node)
+
+  if (nextNode != null) {
+    return getPath(getNextNode, nextNode, offset)
   }
 
   return null

@@ -69,13 +69,15 @@ const registry: PluginRegistry = {
           <p>
             <b>Drag & Drop Exercise:</b>
           </p>
-          {exercise.map((child, i) =>
-            renderChildren(child, [...path, 'exercise', i])
-          )}
+          <div data-path={JSON.stringify(['exercise'])}>
+            {exercise.map((child, i) =>
+              renderChildren(child, [...path, 'exercise', i])
+            )}
+          </div>
           <p>
             <b>Wrong solutions which also shall be shown:</b>
           </p>
-          <ul>
+          <ul data-path={JSON.stringify(['wrongAnswers'])}>
             {wrongAnswers.map((wrongAnswer, i) => (
               <li style={{ marginBottom: '0.3em' }} key={i}>
                 {renderChildren(wrongAnswer, [...path, 'wrongAnswer', i])}
@@ -234,6 +236,8 @@ function getPath(
   offset: number
 ): Path | null {
   if (isElement(node)) {
+    console.log(node.tagName)
+
     const dataPath = node.attributes.getNamedItem('data-path')?.value
 
     if (dataPath != null) {

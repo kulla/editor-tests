@@ -158,16 +158,27 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
     document.addEventListener('selectionchange', () => {
       const selection = document.getSelection()
 
-      if (selection === null || selection.anchorNode === null) {
-        setStartCursor(null)
-      } else {
-        setStartCursor(getCursor(selection.anchorNode, selection.anchorOffset))
-      }
+      if (selection == null) return
 
-      if (selection === null || selection.focusNode === null) {
-        setEndCursor(null)
+      const anchorNode = selection.anchorNode
+      const focusNode = selection.focusNode
+
+      // TODO: When does this occur?!
+      if (anchorNode == null || focusNode == null) return
+
+      const isSelectionForward =
+        selection.isCollapsed ||
+        isBefore(
+          { node: anchorNode, offset: selection.anchorOffset },
+          { node: focusNode, offset: selection.focusOffset }
+        )
+
+      if (isSelectionForward) {
+        setStartCursor(getCursor(anchorNode, selection.anchorOffset))
+        setEndCursor(getCursor(focusNode, selection.anchorOffset))
       } else {
-        setEndCursor(getCursor(selection.focusNode, selection.focusOffset))
+        setStartCursor(getCursor(focusNode, selection.anchorOffset))
+        setEndCursor(getCursor(anchorNode, selection.anchorOffset))
       }
     })
   }, [])
@@ -265,4 +276,23 @@ function getPath(
 
 function isElement(node: Node): node is Element {
   return node.nodeType === Node.ELEMENT_NODE
+}
+
+// Thanks to https://stackoverflow.com/a/8039026/1165155 (thank you Tim Down)
+function isBefore(anchor: HTMLPosition, focus: HTMLPosition) {
+  const range = document.createRange()
+
+  range.setStart(anchor.node, anchor.offset)
+  range.setEnd(focus.node, focus.offset)
+
+  let result = !range.collapsed
+
+  range.detach()
+
+  return result
+}
+
+interface HTMLPosition {
+  node: Node
+  offset: number
 }

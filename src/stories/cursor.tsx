@@ -196,7 +196,7 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       <h2>End cursor</h2>
       <pre>{stringify(endCursor)}</pre>
       <h2>Content</h2>
-      <pre>{JSON.stringify(props.content, undefined, 2)}</pre>
+      <pre>{stringify(props.content)}</pre>
     </>
   )
 }

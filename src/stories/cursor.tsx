@@ -166,20 +166,20 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       // TODO: When does this occur?!
       if (anchorNode == null || focusNode == null) return
 
-      const isSelectionForward =
-        selection.isCollapsed ||
-        isBefore(
-          { node: anchorNode, offset: selection.anchorOffset },
-          { node: focusNode, offset: selection.focusOffset }
-        )
-
-      if (isSelectionForward) {
-        setStartCursor(getCursor(anchorNode, selection.anchorOffset))
-        setEndCursor(getCursor(focusNode, selection.anchorOffset))
-      } else {
-        setStartCursor(getCursor(focusNode, selection.anchorOffset))
-        setEndCursor(getCursor(anchorNode, selection.anchorOffset))
+      const anchor: HTMLPosition = {
+        node: anchorNode,
+        offset: selection.anchorOffset,
       }
+      const focus: HTMLPosition = {
+        node: focusNode,
+        offset: selection.focusOffset,
+      }
+
+      const isSelectionForward =
+        selection.isCollapsed || isBefore(anchor, focus)
+
+      setStartCursor(getCursor(isSelectionForward ? anchor : focus))
+      setEndCursor(getCursor(isSelectionForward ? focus : anchor))
     })
   }, [])
 
@@ -226,16 +226,14 @@ function BorderedSpan({
   )
 }
 
-function getCursor(node: Node, offset: number): Cursor | null {
+function getCursor(position: HTMLPosition): Cursor | null {
   const before = getPath(
     (node) => node.nextSibling ?? node.parentElement,
-    node,
-    offset
+    position
   )
   const after = getPath(
     (node) => node.previousSibling ?? node.parentElement,
-    node,
-    offset
+    position
   )
 
   return before != null && after != null ? { after, before } : null
@@ -243,8 +241,7 @@ function getCursor(node: Node, offset: number): Cursor | null {
 
 function getPath(
   getNextNode: (node: Node) => Node | null,
-  node: Node,
-  offset: number
+  { node, offset }: HTMLPosition
 ): Path | null {
   if (isElement(node)) {
     console.log(node.tagName)
@@ -268,7 +265,7 @@ function getPath(
   const nextNode = getNextNode(node)
 
   if (nextNode != null) {
-    return getPath(getNextNode, nextNode, offset)
+    return getPath(getNextNode, { node: nextNode, offset })
   }
 
   return null

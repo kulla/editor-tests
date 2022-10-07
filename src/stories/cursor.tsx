@@ -203,12 +203,14 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
 
   // TODO: Refactoring
   function stringifyContent() {
+    const startSpan = `<span style="background-color: #4169e1; color: white;">`
+
     let result = ''
     let currentIndent = 0
     let path: Path = []
     const indent = 2
     if (startCursor && R.equals(path, startCursor.after)) {
-      result += `<span style="background-color: blue">`
+      result += startSpan
     }
 
     function renderValue(value: unknown) {
@@ -231,7 +233,7 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
 
           result += ','
           if (startCursor && R.equals(path, startCursor.after)) {
-            result += `<span style="background-color: blue">`
+            result += startSpan
           }
           if (endCursor && R.equals(path, endCursor.after)) {
             result += `</span>`
@@ -266,7 +268,7 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
 
           result += ','
           if (startCursor && R.equals(path, startCursor.after)) {
-            result += `<span style="background-color: blue">`
+            result += startSpan
           }
           if (endCursor && R.equals(path, endCursor.after)) {
             result += `</span>`
@@ -312,13 +314,13 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
         result += '"'
         if (splitIndexStart != null && splitIndexEnd != null) {
           result += value.substring(0, splitIndexStart)
-          result += `<span style="background-color: blue">`
+          result += startSpan
           result += value.substring(splitIndexStart, splitIndexEnd)
           result += `</span>`
           result += value.substring(splitIndexEnd)
         } else if (splitIndexStart != null) {
           result += value.substring(0, splitIndexStart)
-          result += `<span style="background-color: blue">`
+          result += startSpan
           result += value.substring(splitIndexStart)
         } else if (splitIndexEnd != null) {
           result += value.substring(0, splitIndexEnd)

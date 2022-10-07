@@ -325,8 +325,6 @@ function getPath(
   { node, offset }: HTMLPosition
 ): Path | null {
   if (isElement(node)) {
-    console.log(node.tagName)
-
     const dataPath = node.attributes.getNamedItem('data-path')?.value
 
     if (dataPath != null) {

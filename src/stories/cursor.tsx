@@ -196,9 +196,90 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       <h2>End cursor</h2>
       <pre>{stringify(endCursor)}</pre>
       <h2>Content</h2>
-      <pre>{stringify(props.content)}</pre>
+      <pre>{stringifyContent()}</pre>
     </>
   )
+
+  // TODO: Refactoring
+  function stringifyContent() {
+    let result = ''
+    let currentIndent = 0
+    const indent = 2
+
+    function renderValue(value: unknown) {
+      const shallBeRenderedCompactly = JSON.stringify(value).length < 100
+
+      if (Array.isArray(value)) {
+        result += '['
+        currentIndent += indent
+
+        for (const child of value) {
+          if (!shallBeRenderedCompactly) {
+            renderNewLine()
+          } else {
+            result += ' '
+          }
+
+          renderValue(child)
+
+          result += ','
+        }
+
+        currentIndent -= indent
+
+        if (!shallBeRenderedCompactly) {
+          renderNewLine()
+        } else {
+          result += ' '
+        }
+        result += ']'
+      } else if (isObject(value)) {
+        result += '{'
+        currentIndent += indent
+
+        for (const key in value) {
+          if (!shallBeRenderedCompactly) {
+            renderNewLine()
+          } else {
+            result += ' '
+          }
+          result += key
+          result += ': '
+
+          renderValue(value[key])
+
+          result += ','
+        }
+
+        currentIndent -= indent
+        if (!shallBeRenderedCompactly) {
+          renderNewLine()
+        } else {
+          result += ' '
+        }
+        result += '}'
+      } else if (typeof value === 'string') {
+        result += '"' + value + '"'
+      } else if (typeof value === 'number' || typeof value === 'boolean') {
+        result += value.toString()
+      } else {
+        result += 'null'
+      }
+    }
+
+    function renderNewLine() {
+      result += '\n'
+      result += ''.padStart(currentIndent)
+    }
+
+    function isObject(value: unknown): value is Record<string, unknown> {
+      return typeof value === 'object' && value !== null
+    }
+
+    renderValue(props.content)
+
+    return result
+  }
 }
 
 function BorderedSpan({

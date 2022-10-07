@@ -1,3 +1,4 @@
+import * as R from 'ramda'
 import * as React from 'react'
 import stringify from 'json-stringify-pretty-compact'
 
@@ -80,7 +81,7 @@ const registry: PluginRegistry = {
           <ul data-path={JSON.stringify(['wrongAnswers'])}>
             {wrongAnswers.map((wrongAnswer, i) => (
               <li style={{ marginBottom: '0.3em' }} key={i}>
-                {renderChildren(wrongAnswer, [...path, 'wrongAnswer', i])}
+                {renderChildren(wrongAnswer, [...path, 'wrongAnswers', i])}
               </li>
             ))}
           </ul>
@@ -129,7 +130,7 @@ const registry: PluginRegistry = {
   text: {
     render({ content }, path) {
       return (
-        <span data-path={JSON.stringify(path)} data-type="text">
+        <span data-path={JSON.stringify([...path, 'content'])} data-type="text">
           {content}
         </span>
       )
@@ -191,12 +192,12 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       </div>
       <hr />
       <h1>State</h1>
+      <h2>Content</h2>
+      <pre dangerouslySetInnerHTML={{ __html: stringifyContent() }}></pre>
       <h2>Start cursor</h2>
       <pre>{stringify(startCursor)}</pre>
       <h2>End cursor</h2>
       <pre>{stringify(endCursor)}</pre>
-      <h2>Content</h2>
-      <pre>{stringifyContent()}</pre>
     </>
   )
 
@@ -204,7 +205,11 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
   function stringifyContent() {
     let result = ''
     let currentIndent = 0
+    let path: Path = []
     const indent = 2
+    if (startCursor && R.equals(path, startCursor.after)) {
+      result += `<span style="background-color: blue">`
+    }
 
     function renderValue(value: unknown) {
       const shallBeRenderedCompactly = JSON.stringify(value).length < 100
@@ -213,7 +218,9 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
         result += '['
         currentIndent += indent
 
-        for (const child of value) {
+        for (const [i, child] of value.entries()) {
+          path.push(i)
+
           if (!shallBeRenderedCompactly) {
             renderNewLine()
           } else {
@@ -223,6 +230,13 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
           renderValue(child)
 
           result += ','
+          if (startCursor && R.equals(path, startCursor.after)) {
+            result += `<span style="background-color: blue">`
+          }
+          if (endCursor && R.equals(path, endCursor.after)) {
+            result += `</span>`
+          }
+          path.pop()
         }
 
         currentIndent -= indent
@@ -237,7 +251,9 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
         result += '{'
         currentIndent += indent
 
-        for (const key in value) {
+        for (const [key, child] of Object.entries(value)) {
+          path.push(key)
+
           if (!shallBeRenderedCompactly) {
             renderNewLine()
           } else {
@@ -246,9 +262,16 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
           result += key
           result += ': '
 
-          renderValue(value[key])
+          renderValue(child)
 
           result += ','
+          if (startCursor && R.equals(path, startCursor.after)) {
+            result += `<span style="background-color: blue">`
+          }
+          if (endCursor && R.equals(path, endCursor.after)) {
+            result += `</span>`
+          }
+          path.pop()
         }
 
         currentIndent -= indent
@@ -259,7 +282,53 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
         }
         result += '}'
       } else if (typeof value === 'string') {
-        result += '"' + value + '"'
+        let splitIndexStart: number | null = null
+        let splitIndexEnd: number | null = null
+
+        if (
+          startCursor != null &&
+          R.equals(startCursor.after, startCursor.before) &&
+          R.startsWith(path, startCursor.after)
+        ) {
+          const [, tail] = R.splitAt(path.length, startCursor.after)
+
+          if (tail.length === 1 && typeof tail[0] === 'number') {
+            splitIndexStart = tail[0]
+          }
+        }
+
+        if (
+          endCursor != null &&
+          R.equals(endCursor.after, endCursor.before) &&
+          R.startsWith(path, endCursor.after)
+        ) {
+          const [, tail] = R.splitAt(path.length, endCursor.after)
+
+          if (tail.length === 1 && typeof tail[0] === 'number') {
+            splitIndexEnd = tail[0]
+          }
+        }
+
+        result += '"'
+        if (splitIndexStart != null && splitIndexEnd != null) {
+          result += value.substring(0, splitIndexStart)
+          result += `<span style="background-color: blue">`
+          result += value.substring(splitIndexStart, splitIndexEnd)
+          result += `</span>`
+          result += value.substring(splitIndexEnd)
+        } else if (splitIndexStart != null) {
+          result += value.substring(0, splitIndexStart)
+          result += `<span style="background-color: blue">`
+          result += value.substring(splitIndexStart)
+        } else if (splitIndexEnd != null) {
+          result += value.substring(0, splitIndexEnd)
+          result += `</span>`
+          result += value.substring(splitIndexEnd)
+        } else {
+          result += value
+        }
+
+        result += '"'
       } else if (typeof value === 'number' || typeof value === 'boolean') {
         result += value.toString()
       } else {
@@ -272,7 +341,7 @@ export function EditorWithCursor(props: EditorWithCursorProps) {
       result += ''.padStart(currentIndent)
     }
 
-    function isObject(value: unknown): value is Record<string, unknown> {
+    function isObject(value: unknown): value is object {
       return typeof value === 'object' && value !== null
     }
 

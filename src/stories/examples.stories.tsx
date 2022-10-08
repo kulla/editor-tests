@@ -4,6 +4,7 @@ import { ReportComponentState } from './utils'
 import { EditableTextElement } from './editable-text-element'
 import { Rendering } from './rendering'
 import { EditorWithCursor } from './cursor'
+import { BoldAndItalic } from './mark'
 
 export default {
   title: 'Tests',
@@ -19,6 +20,8 @@ export const EditableTextElement_ = () => (
     </ReportComponentState>
   </Example>
 )
+
+export const BoldAndItalic_ = () => <BoldAndItalic />
 
 export const Rendering_ = () => <Rendering />
 export const EditorWithCursor_ = () => (

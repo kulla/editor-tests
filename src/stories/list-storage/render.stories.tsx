@@ -47,8 +47,8 @@ function EditorWithRendering() {
 
   return (
     <>
-      <h1>Rendering</h1>
       {renderInternalState(state)}
+      <hr />
       <h1>Original state</h1>
       <pre>{stringify(originalState)}</pre>
       <h1>Internal Storage format</h1>
@@ -192,10 +192,16 @@ function renderElement(element: RenderedElement): React.ReactNode {
     }
   } else {
     return (
-      <>
+      <div>
+        <p>
+          <b>Drag & Drop exercise:</b>
+        </p>
         {element.properties['exercise']}
+        <p>
+          <b>Wrong solutions:</b>
+        </p>
         {element.properties['wrongAnswers']}
-      </>
+      </div>
     )
   }
 }

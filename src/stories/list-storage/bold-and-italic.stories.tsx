@@ -166,6 +166,37 @@ function BoldAndItalic() {
 }
 
 function normalize(state: InternalState): InternalState {
+  return deleteDuplicates(endMarks(state))
+}
+
+function deleteDuplicates(state: InternalState): InternalState {
+  const result: InternalState = []
+  const starts: Start[] = []
+  const deletes: number[] = []
+
+  for (const element of state) {
+    if (element.type === 'start') {
+      if (starts.some((s) => s.contentType === element.contentType)) {
+        deletes.push(element.id)
+      } else {
+        result.push(element)
+        starts.push(element)
+      }
+    } else if (element.type === 'end') {
+      starts.pop()
+
+      if (!deletes.includes(element.id)) {
+        result.push(element)
+      }
+    } else {
+      result.push(element)
+    }
+  }
+
+  return result
+}
+
+function endMarks(state: InternalState): InternalState {
   const result: InternalState = []
   const starts: Start[] = []
   const renames: Record<string, number | undefined> = {}

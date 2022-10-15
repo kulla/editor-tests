@@ -77,6 +77,9 @@ function BoldAndItalic() {
         <button onClick={() => wrapSelection('bold')}>
           <b>B</b>
         </button>
+        <button onClick={() => wrapSelection('code')}>
+          <code>C</code>
+        </button>
         <button
           onClick={() => setState(convertToInternalStorage(originalState))}
         >
@@ -101,7 +104,7 @@ function BoldAndItalic() {
     </>
   )
 
-  function wrapSelection(type: 'italic' | 'bold') {
+  function wrapSelection(type: 'italic' | 'bold' | 'code') {
     if (start == null || end == null) return
     // Let's implement this later
     if (R.equals(start, end)) return
@@ -259,7 +262,9 @@ function renderUnsafe(state: InternalState) {
           ? 'p'
           : element.contentType === 'bold'
           ? 'b'
-          : 'i'
+          : element.contentType === 'italic'
+          ? 'i'
+          : 'code'
 
       endType[element.id.toString()] = htmlTag
       newLine()
@@ -347,8 +352,8 @@ function* getInternalStateElements(
 
 type Content = LeafContent | ListContent
 type LeafContent = Text
-type ListContent = Paragraph | Italic | Bold
-type Inline = Italic | Bold | Text
+type ListContent = Paragraph | Italic | Bold | Code
+type Inline = Italic | Bold | Text | Code
 
 interface Paragraph {
   type: 'paragraph'
@@ -362,6 +367,11 @@ interface Italic {
 
 interface Bold {
   type: 'bold'
+  children: Inline[]
+}
+
+interface Code {
+  type: 'code'
   children: Inline[]
 }
 

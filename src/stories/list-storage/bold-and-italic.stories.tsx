@@ -16,7 +16,7 @@ const originalState: Paragraph = {
   children: [
     {
       type: 'text',
-      text: 'Eum est eligendi ut id rem. Quisquam fuga architecto et consequuntur expedita consectetur illum et. Non voluptatem autem est amet mollitia quo. Non autem dolore aspernatur placeat ut. Doloribus rerum occaecati dolor. Dolor sint non magnam qui vel.',
+      text: 'Eum est eligendi ut id rem. Quisquam fuga architecto et consequuntur expedita consectetur illum et. Non voluptatem autem est amet mollitia quo. Non autem dolore aspernatur placeat ut. Doloribus rerum occaecati dolor. Dolor sint non magnam qui vel. Eum est eligendi ut id rem. Quisquam fuga architecto et consequuntur expedita consectetur illum et. Non voluptatem autem est amet mollitia quo. Non autem dolore aspernatur placeat ut. Doloribus rerum occaecati dolor. Dolor sint non magnam qui vel.Eum est eligendi ut id rem. Quisquam fuga architecto et consequuntur expedita consectetur illum et. Non voluptatem autem est amet mollitia quo. Non autem dolore aspernatur placeat ut. Doloribus rerum occaecati dolor. Dolor sint non magnam qui vel.',
     },
   ],
 }
@@ -180,18 +180,23 @@ function normalize(state: InternalState): InternalState {
       const lastStart = starts.pop()
 
       if (lastStart === undefined) {
-        // Ignore this end without an start
+        // This seems to be a bug
+        result.push(element)
       } else if (newName !== undefined) {
         result.push({ type: 'end', id: newName })
       } else if (lastStart.id !== element.id) {
-        result.push({ type: 'end', id: lastStart.id })
-        result.push(element)
+        const i = starts.findIndex((s) => s.id === element.id)
+        const toBeChanged = [...starts.splice(i), lastStart]
 
-        const newId = ID_COUNTER++
+        for (const start of R.reverse(toBeChanged)) {
+          result.push({ type: 'end', id: start.id })
+        }
 
-        result.push({ ...lastStart, id: newId })
-
-        renames[lastStart.id.toString()] = newId
+        for (const start of toBeChanged.slice(1)) {
+          const id = ID_COUNTER++
+          result.push({ ...start, id })
+          renames[start.id.toString()] = id
+        }
       } else {
         result.push(element)
       }

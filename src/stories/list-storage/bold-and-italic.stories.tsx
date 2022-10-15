@@ -304,7 +304,7 @@ function renderUnsafe(state: InternalState) {
 
       endType[element.id.toString()] = htmlTag
       newLine()
-      result += `<${htmlTag} id="${element.id.toString()}">`
+      result += `<${htmlTag} id="${element.id.toString()}" data-pos="${pos.toString()}">`
 
       indent += 2
     } else if (element.type === 'end') {

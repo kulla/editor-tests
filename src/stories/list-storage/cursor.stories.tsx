@@ -3,13 +3,11 @@ import stringify from 'json-stringify-pretty-compact'
 import React from 'react'
 
 export default {
-  title: 'List storage/Rendering',
-  component: EditorWithRendering,
+  title: 'List storage/Editor With Cursor',
+  component: EditorWithCursor,
 }
 
-export const EditorWithRendering_ = () => (
-  <EditorWithRendering></EditorWithRendering>
-)
+export const EditorWithCursor_ = () => <EditorWithCursor></EditorWithCursor>
 
 // TODO: Better solution for generating IDs
 let ID_COUNTER = 0
@@ -42,58 +40,116 @@ const originalState: DragNDrop = {
   },
 }
 
-function EditorWithRendering() {
+function EditorWithCursor() {
   const [state] = React.useState(convertToInternalStorage(originalState))
+  const [startCursor, setStartCursor] = React.useState<Cursor | null>(null)
+  const [endCursor, setEndCursor] = React.useState<Cursor | null>(null)
+  const divRef = React.createRef<HTMLDivElement>()
+
+  React.useEffect(() => {
+    divRef.current?.addEventListener('beforeinput', (event) =>
+      event.preventDefault()
+    )
+  }, [divRef])
+
+  React.useEffect(() => {
+    document.addEventListener('selectionchange', () => {
+      const selection = document.getSelection()
+
+      if (selection == null) return
+
+      const anchorNode = selection.anchorNode
+      const focusNode = selection.focusNode
+
+      // TODO: When does this occur?!
+      if (anchorNode == null || focusNode == null) return
+
+      const anchor = getCursor({
+        node: anchorNode,
+        offset: selection.anchorOffset,
+      })
+      const focus = getCursor({
+        node: focusNode,
+        offset: selection.focusOffset,
+      })
+
+      if (anchor == null || focus == null || isLessThanOrEqual(anchor, focus)) {
+        setStartCursor(anchor)
+        setEndCursor(focus)
+      } else {
+        setStartCursor(focus)
+        setEndCursor(anchor)
+      }
+    })
+  }, [])
 
   return (
     <>
-      {renderInternalState(state)}
+      <div ref={divRef} contentEditable="true" suppressContentEditableWarning>
+        {renderInternalState(state)}
+      </div>
       <hr />
-      <h1>Original state</h1>
-      <pre>{stringify(originalState)}</pre>
+      <h1>Start Cursor</h1>
+      <pre>{stringify(startCursor)}</pre>
+      <h1>End Cursor</h1>
+      <pre>{stringify(endCursor)}</pre>
       <h1>Internal Storage format</h1>
-      <h2>JSON</h2>
       <pre>{stringify(state)}</pre>
-      <h2>Visualisation</h2>
-      {renderInternalStateVisualization()}
     </>
   )
+}
 
-  function renderInternalStateVisualization() {
-    return <div>{state.map(visualizeInternalStateElement)}</div>
-  }
+function getCursor({ node, offset }: HTMLPosition): Cursor | null {
+  if (isElement(node)) {
+    const dataPath = node.attributes.getNamedItem('data-pos')?.value
 
-  function visualizeInternalStateElement(
-    element: InternalStateElement,
-    key: number
-  ) {
-    if (element.type === 'leaf') {
-      return (
-        <InternalStateElementBlock color="blue" key={key}>
-          {element.contentType}: "{element.text}"
-        </InternalStateElementBlock>
-      )
-    } else if (element.type === 'start') {
-      return (
-        <InternalStateElementBlock color="green" key={key}>
-          Start: {element.contentType} ({element.kind}) of {element.id}
-        </InternalStateElementBlock>
-      )
-    } else if (element.type === 'end') {
-      return (
-        <InternalStateElementBlock color="orange" key={key}>
-          End: {element.id}
-        </InternalStateElementBlock>
-      )
+    if (dataPath != null) {
+      // Okay, let's have no check for NaN here...
+      const position = parseInt(dataPath)
+
+      return node.attributes.getNamedItem('data-kind')?.value === 'leaf'
+        ? { position, offset }
+        : { position }
     }
   }
+
+  const nextNode = node.previousSibling ?? node.parentElement
+
+  if (nextNode != null) {
+    return getCursor({ node: nextNode, offset })
+  }
+
+  return null
+}
+
+function isElement(node: Node): node is Element {
+  return node.nodeType === Node.ELEMENT_NODE
+}
+
+interface Cursor {
+  position: number
+  offset?: number
+}
+
+function isLessThanOrEqual(x: Cursor, y: Cursor) {
+  if (x.position < y.position) return true
+  if (y.position > x.position) return false
+  if (x.offset === undefined) return true
+  if (y.offset === undefined) return false
+
+  return x.offset <= y.offset
 }
 
 function renderInternalState(state: InternalState) {
   const stack: Array<RenderedCompundElement> = []
   let result: React.ReactNode | null = null
 
-  for (const element of state) {
+  for (const [pos, element] of state.entries()) {
+    const attributes: Attributes = {
+      'data-pos': pos.toString(),
+      'data-kind': element.type === 'start' ? element.kind : 'leaf',
+    }
+
     if (
       (element.type === 'start' || element.type === 'leaf') &&
       element.property !== undefined
@@ -109,9 +165,10 @@ function renderInternalState(state: InternalState) {
     if (element.type === 'leaf') {
       pushNode(
         renderElement({
-          kind: 'text',
+          kind: 'leaf',
           contentType: element.contentType,
           text: element.text,
+          attributes,
         })
       )
     } else if (element.type === 'start') {
@@ -121,6 +178,7 @@ function renderInternalState(state: InternalState) {
           id: element.id,
           children: [],
           contentType: element.contentType,
+          attributes,
         })
       } else {
         stack.push({
@@ -128,6 +186,7 @@ function renderInternalState(state: InternalState) {
           id: element.id,
           properties: {},
           contentType: element.contentType,
+          attributes,
         })
       }
     } else if (element.type === 'end') {
@@ -162,26 +221,36 @@ function renderInternalState(state: InternalState) {
 }
 
 function renderElement(element: RenderedElement): React.ReactNode {
-  if (element.kind === 'text') {
+  if (element.kind === 'leaf') {
     if (element.contentType === 'text') {
-      return <>{element.text}</>
+      return <span {...element.attributes}>{element.text}</span>
     } else if (element.contentType === 'wrongAnswer') {
-      return <BorderedSpan background="#EA7F99">{element.text}</BorderedSpan>
+      console.log(element.attributes)
+
+      return (
+        <BorderedSpan background="#EA7F99" {...element.attributes}>
+          {element.text}
+        </BorderedSpan>
+      )
     } else {
-      return <BorderedSpan background="#488F65">{element.text}</BorderedSpan>
+      return (
+        <BorderedSpan background="#488F65" {...element.attributes}>
+          {element.text}
+        </BorderedSpan>
+      )
     }
   } else if (element.kind === 'list') {
     if (element.contentType === 'bold') {
-      return <b>{renderNodes(element.children)}</b>
+      return <b {...element.attributes}>{renderNodes(element.children)}</b>
     } else if (element.contentType === 'italic') {
-      return <i>{renderNodes(element.children)}</i>
+      return <i {...element.attributes}>{renderNodes(element.children)}</i>
     } else if (element.contentType === 'paragraph') {
-      return <p>{renderNodes(element.children)}</p>
+      return <p {...element.attributes}>{renderNodes(element.children)}</p>
     } else if (element.contentType === 'exercise') {
-      return <div>{renderNodes(element.children)}</div>
+      return <div {...element.attributes}>{renderNodes(element.children)}</div>
     } else if (element.contentType === 'wrongAnswers') {
       return (
-        <ul>
+        <ul {...element.attributes}>
           {element.children.map((child, i) => (
             <li key={i} style={{ marginBottom: '5px' }}>
               {child}
@@ -192,7 +261,7 @@ function renderElement(element: RenderedElement): React.ReactNode {
     }
   } else {
     return (
-      <div>
+      <div {...element.attributes}>
         <p>
           <b>Drag & Drop exercise:</b>
         </p>
@@ -219,10 +288,11 @@ function renderNodes(nodes: React.ReactNode[]) {
 function BorderedSpan({
   background,
   children,
+  ...attributes
 }: {
   background: string
   children: React.ReactNode
-}) {
+} & Attributes) {
   return (
     <span
       style={{
@@ -232,6 +302,7 @@ function BorderedSpan({
         border: '1px solid grey',
         background,
       }}
+      {...attributes}
     >
       {children}
     </span>
@@ -246,6 +317,7 @@ interface RenderedList {
   id: number
   children: React.ReactNode[]
   contentType: ListContent['type']
+  attributes: Attributes
 }
 
 interface RenderedObject {
@@ -254,12 +326,19 @@ interface RenderedObject {
   properties: Record<string, React.ReactNode>
   currentProperty?: string
   contentType: ObjectContent['type']
+  attributes: Attributes
 }
 
 interface RenderedLeaf {
-  kind: 'text'
+  kind: 'leaf'
   text: string
   contentType: LeafContent['type']
+  attributes: Attributes
+}
+
+interface Attributes {
+  'data-pos': string
+  'data-kind': RenderedElement['kind']
 }
 
 function assert(predicate: boolean): asserts predicate {
@@ -319,33 +398,6 @@ function* getInternalStateElements(
 
     yield { type: 'end', id }
   }
-}
-
-function InternalStateElementBlock({
-  color,
-  children,
-  key,
-}: {
-  key: number
-  color: string
-  children: React.ReactNode
-}) {
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        borderRadius: '10px',
-        border: '1px solid black',
-        padding: '1em',
-        backgroundColor: color,
-        marginRight: '0.5em',
-        marginBottom: '1em',
-      }}
-      key={key}
-    >
-      {children}
-    </span>
-  )
 }
 
 type Content = ObjectContent | ListContent | LeafContent
@@ -433,4 +485,9 @@ interface StartBase {
 interface End {
   type: 'end'
   id: number
+}
+
+interface HTMLPosition {
+  node: Node
+  offset: number
 }

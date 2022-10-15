@@ -348,20 +348,21 @@ function* getInternalStateElements(
 type Content = LeafContent | ListContent
 type LeafContent = Text
 type ListContent = Paragraph | Italic | Bold
+type Inline = Italic | Bold | Text
 
 interface Paragraph {
   type: 'paragraph'
-  children: (Italic | Bold | Text)[]
+  children: Inline[]
 }
 
 interface Italic {
   type: 'italic'
-  children: (Bold | Text)[]
+  children: Inline[]
 }
 
 interface Bold {
   type: 'bold'
-  children: (Italic | Text)[]
+  children: Inline[]
 }
 
 interface Text {

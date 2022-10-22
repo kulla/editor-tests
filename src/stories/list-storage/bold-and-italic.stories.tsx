@@ -151,7 +151,7 @@ function BoldAndItalic() {
       }
     }
 
-    const id = ID_COUNTER++
+    const id = nextId()
 
     setState(
       normalize([
@@ -172,7 +172,7 @@ function normalize(state: InternalState): InternalState {
 function deleteDuplicates(state: InternalState): InternalState {
   const result: InternalState = []
   const starts: Start[] = []
-  const deletes: number[] = []
+  const deletes: string[] = []
 
   for (const element of state) {
     if (element.type === 'start') {
@@ -199,7 +199,7 @@ function deleteDuplicates(state: InternalState): InternalState {
 function endMarks(state: InternalState): InternalState {
   const result: InternalState = []
   const starts: Start[] = []
-  const renames: Record<string, number | undefined> = {}
+  const renames: Record<string, string | undefined> = {}
 
   for (const element of state) {
     if (element.type === 'start') {
@@ -207,7 +207,7 @@ function endMarks(state: InternalState): InternalState {
     }
 
     if (element.type === 'end') {
-      const newName = renames[element.id.toString()]
+      const newName = renames[element.id]
       const lastStart = starts.pop()
 
       if (lastStart === undefined) {
@@ -224,9 +224,9 @@ function endMarks(state: InternalState): InternalState {
         }
 
         for (const start of toBeChanged.slice(1)) {
-          const id = ID_COUNTER++
+          const id = nextId()
           result.push({ ...start, id })
-          renames[start.id.toString()] = id
+          renames[start.id] = id
         }
       } else {
         result.push(element)
@@ -368,7 +368,7 @@ function* getInternalStateElements(
       property,
     }
   } else {
-    const id = ID_COUNTER++
+    const id = nextId()
 
     yield {
       type: 'start',
@@ -384,6 +384,10 @@ function* getInternalStateElements(
 
     yield { type: 'end', id }
   }
+}
+
+function nextId() {
+  return `${ID_COUNTER++}`
 }
 
 type Content = LeafContent | ListContent
@@ -435,13 +439,13 @@ interface StartList {
   kind: 'list'
   contentType: ListContent['type']
   type: 'start'
-  id: number
+  id: string
   property?: string
 }
 
 interface End {
   type: 'end'
-  id: number
+  id: string
 }
 
 interface HTMLPosition {

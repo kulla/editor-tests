@@ -104,7 +104,7 @@ function BoldAndItalic() {
     </>
   )
 
-  function wrapSelection(type: 'italic' | 'bold' | 'code') {
+  function wrapSelection(contentType: 'italic' | 'bold' | 'code') {
     if (start == null || end == null) return
     // Let's implement this later
     if (R.equals(start, end)) return
@@ -156,9 +156,9 @@ function BoldAndItalic() {
     setState(
       normalize([
         ...before,
-        { type: 'start', kind: 'list', id, contentType: type },
+        { type: 'start', kind: 'list', id, contentType },
         ...middle,
-        { type: 'end', id },
+        { type: 'end', contentType },
         ...after,
       ])
     )
@@ -166,77 +166,7 @@ function BoldAndItalic() {
 }
 
 function normalize(state: InternalState): InternalState {
-  return deleteDuplicates(endMarks(state))
-}
-
-function deleteDuplicates(state: InternalState): InternalState {
-  const result: InternalState = []
-  const starts: Start[] = []
-  const deletes: string[] = []
-
-  for (const element of state) {
-    if (element.type === 'start') {
-      if (starts.some((s) => s.contentType === element.contentType)) {
-        deletes.push(element.id)
-      } else {
-        result.push(element)
-        starts.push(element)
-      }
-    } else if (element.type === 'end') {
-      starts.pop()
-
-      if (!deletes.includes(element.id)) {
-        result.push(element)
-      }
-    } else {
-      result.push(element)
-    }
-  }
-
-  return result
-}
-
-function endMarks(state: InternalState): InternalState {
-  const result: InternalState = []
-  const starts: Start[] = []
-  const renames: Record<string, string | undefined> = {}
-
-  for (const element of state) {
-    if (element.type === 'start') {
-      starts.push(element)
-    }
-
-    if (element.type === 'end') {
-      const newName = renames[element.id]
-      const lastStart = starts.pop()
-
-      if (lastStart === undefined) {
-        // This seems to be a bug
-        result.push(element)
-      } else if (newName !== undefined) {
-        result.push({ type: 'end', id: newName })
-      } else if (lastStart.id !== element.id) {
-        const i = starts.findIndex((s) => s.id === element.id)
-        const toBeChanged = [...starts.splice(i), lastStart]
-
-        for (const start of R.reverse(toBeChanged)) {
-          result.push({ type: 'end', id: start.id })
-        }
-
-        for (const start of toBeChanged.slice(1)) {
-          const id = nextId()
-          result.push({ ...start, id })
-          renames[start.id] = id
-        }
-      } else {
-        result.push(element)
-      }
-    } else {
-      result.push(element)
-    }
-  }
-
-  return result
+  return state
 }
 
 function getCursor({ node, offset }: HTMLPosition): Cursor | null {
@@ -284,7 +214,6 @@ function isLessThanOrEqual(x: Cursor, y: Cursor) {
 function renderUnsafe(state: InternalState) {
   let result = ''
   let indent = 0
-  const endType: Record<string, string> = {}
 
   for (const [pos, element] of state.entries()) {
     if (element.type === 'leaf') {
@@ -293,16 +222,8 @@ function renderUnsafe(state: InternalState) {
       result += element.text
       result += '</span>'
     } else if (element.type === 'start') {
-      const htmlTag =
-        element.contentType === 'paragraph'
-          ? 'p'
-          : element.contentType === 'bold'
-          ? 'b'
-          : element.contentType === 'italic'
-          ? 'i'
-          : 'code'
+      const htmlTag = toHTMLTag(element.contentType)
 
-      endType[element.id.toString()] = htmlTag
       newLine()
       result += `<${htmlTag} id="${element.id.toString()}" data-pos="${pos.toString()}">`
 
@@ -310,8 +231,7 @@ function renderUnsafe(state: InternalState) {
     } else if (element.type === 'end') {
       indent -= 2
       newLine()
-      result += `</${endType[element.id.toString()]}>`
-      result += `<!-- id: ${element.id} -->`
+      result += `</${toHTMLTag(element.contentType)}>`
     }
   }
 
@@ -320,6 +240,19 @@ function renderUnsafe(state: InternalState) {
   function newLine() {
     result += '\n'
     result += ''.padStart(indent)
+  }
+}
+
+function toHTMLTag(contentType: ListContent['type']) {
+  switch (contentType) {
+    case 'code':
+      return 'code'
+    case 'italic':
+      return 'i'
+    case 'bold':
+      return 'b'
+    case 'paragraph':
+      return 'p'
   }
 }
 
@@ -382,7 +315,7 @@ function* getInternalStateElements(
       yield* getInternalStateElements(child)
     }
 
-    yield { type: 'end', id }
+    yield { type: 'end', contentType: content.type }
   }
 }
 
@@ -445,7 +378,7 @@ interface StartList {
 
 interface End {
   type: 'end'
-  id: string
+  contentType: ListContent['type']
 }
 
 interface HTMLPosition {
